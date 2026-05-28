@@ -95,8 +95,15 @@ try
         options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
-    // TODO: Afegir MediatR, AutoMapper, FluentValidation en fases posteriors
-    // builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+    // ===== Configurar MediatR =====
+    builder.Services.AddMediatR(cfg =>
+    {
+        cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+        // Registrar pipeline behaviors
+        cfg.AddOpenBehavior(typeof(VeteriLach.ReadApi.Application.Common.Behaviors.LoggingBehavior<,>));
+    });
+
+    // TODO: Afegir AutoMapper, FluentValidation en fases posteriors
     // builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
     var app = builder.Build();
