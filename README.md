@@ -231,10 +231,11 @@ VeteriLach.ReadApi/
 - **Fase 4**: Entity Framework Core scaffold (151 entitats)
 - **Fase 5**: MediatR i CQRS implementat
 - **Fase 6**: AutoMapper i perfils de mapatge
+- **Fase 7**: FluentValidation amb pipeline behaviors i filtre global
 
 ### 🔄 En Desenvolupament
 
-- **Fase 7**: FluentValidation (validació de queries i DTOs)
+_Fase base completada. Properament: API de Propietaris i Historial Clínic._
 
 ### 📅 Planificat
 
