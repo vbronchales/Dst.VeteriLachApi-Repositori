@@ -33,37 +33,24 @@ public class AnimalsController : ControllerBase
         [FromQuery] Guid? idPropietari = null,
         [FromQuery] Guid? idEspecie = null)
     {
-        try
+        // Validar pageSize màxim
+        if (pageSize > 50)
         {
-            // Validar pageSize màxim
-            if (pageSize > 50)
-            {
-                pageSize = 50;
-            }
-
-            var query = new GetAnimalsListQuery
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                SearchTerm = searchTerm,
-                IdPropietari = idPropietari,
-                IdEspecie = idEspecie
-            };
-
-            var result = await _mediator.Send(query);
-
-            return Ok(result);
+            pageSize = 50;
         }
-        catch (Exception ex)
+
+        var query = new GetAnimalsListQuery
         {
-            _logger.LogError(ex, "Error obtenint llista d'animals");
-            return StatusCode(500, new
-            {
-                success = false,
-                error = "Error obtenint animals",
-                message = ex.Message
-            });
-        }
+            PageNumber = pageNumber,
+            PageSize = pageSize,
+            SearchTerm = searchTerm,
+            IdPropietari = idPropietari,
+            IdEspecie = idEspecie
+        };
+
+        var result = await _mediator.Send(query);
+
+        return Ok(result);
     }
 
     /// <summary>
@@ -73,36 +60,23 @@ public class AnimalsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetAnimal(Guid id)
     {
-        try
-        {
-            var query = new GetAnimalByIdQuery(id);
-            var animal = await _mediator.Send(query);
+        var query = new GetAnimalByIdQuery(id);
+        var animal = await _mediator.Send(query);
 
-            if (animal == null)
-            {
-                return NotFound(new
-                {
-                    success = false,
-                    error = "Animal no trobat",
-                    id
-                });
-            }
-
-            return Ok(new
-            {
-                success = true,
-                data = animal
-            });
-        }
-        catch (Exception ex)
+        if (animal == null)
         {
-            _logger.LogError(ex, "Error obtenint animal {Id}", id);
-            return StatusCode(500, new
+            return NotFound(new
             {
                 success = false,
-                error = "Error obtenint animal",
-                message = ex.Message
+                error = "Animal no trobat",
+                id
             });
         }
+
+        return Ok(new
+        {
+            success = true,
+            data = animal
+        });
     }
 }

@@ -1,3 +1,4 @@
+using FluentValidation;
 using Serilog;
 using VeteriLach.ReadApi.Middleware;
 using VeteriLach.ReadApi.Infrastructure.Data;
@@ -27,7 +28,11 @@ try
     Log.Information("Iniciant VeteriLach.ReadApi");
 
     // ===== Add services to the container =====
-    builder.Services.AddControllers()
+    builder.Services.AddControllers(options =>
+        {
+            // Afegir filtre global per validacions
+            options.Filters.Add<VeteriLach.ReadApi.Middleware.ValidationExceptionFilter>();
+        })
         .AddJsonOptions(options =>
         {
             // Configurar serialització JSON
@@ -99,15 +104,16 @@ try
     builder.Services.AddMediatR(cfg =>
     {
         cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-        // Registrar pipeline behaviors
+        // Registrar pipeline behaviors (ordre important: validació → logging)
+        cfg.AddOpenBehavior(typeof(VeteriLach.ReadApi.Application.Common.Behaviors.ValidationBehavior<,>));
         cfg.AddOpenBehavior(typeof(VeteriLach.ReadApi.Application.Common.Behaviors.LoggingBehavior<,>));
     });
 
     // ===== Configurar AutoMapper =====
     builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
-    // TODO: Afegir FluentValidation en la següent fase
-    // builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+    // ===== Configurar FluentValidation =====
+    builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
     var app = builder.Build();
 
