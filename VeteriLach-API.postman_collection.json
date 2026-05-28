@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "veterilach-api-2026",
-		"name": "VeteriLach Read API - Fase 7",
-		"description": "Col·lecció completa de proves per a VeteriLach Read API.\n\n**Fases implementades:**\n- Fase 0-3: Setup, configuració, API Keys\n- Fase 4: Entity Framework Core (151 entitats)\n- Fase 5: MediatR/CQRS\n- Fase 6: AutoMapper\n- Fase 7: FluentValidation\n\n**Variables:**\n- `baseUrl`: http://localhost:5072\n- `apiKey`: swagger-test-key-123",
+		"name": "VeteriLach Read API - Fase 8",
+		"description": "Col·lecció completa de proves per a VeteriLach Read API.\n\n**Fases implementades:**\n- Fase 0-3: Setup, configuració, API Keys\n- Fase 4: Entity Framework Core (151 entitats)\n- Fase 5: MediatR/CQRS\n- Fase 6: AutoMapper\n- Fase 7: FluentValidation\n- Fase 8: API de Propietaris\n\n**Variables:**\n- `baseUrl`: http://localhost:5072\n- `apiKey`: swagger-test-key-123",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -597,6 +597,305 @@
 							]
 						},
 						"description": "Prova endpoint GetAnimal amb GUID que no existeix.\n\n**Expected:** 404 Not Found\n\n**Body:** { success: false, error: \"Animal no trobat\", id: \"11111111-1111-1111-1111-111111111111\" }"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Propietaris - Queries Vàlides",
+			"item": [
+				{
+					"name": "Get Propietaris - Pàgina 1 (Default)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?pageNumber=1&pageSize=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "1"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Llista paginada de propietaris amb paràmetres per defecte.\n\n**Expected:** 200 OK amb 10 propietaris, pagination metadata, totalAnimals per propietari"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Propietaris - Amb cerca (barcelona)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?searchTerm=barcelona&pageSize=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "barcelona"
+								},
+								{
+									"key": "pageSize",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Cerca propietaris amb terme 'barcelona' (nom, cognoms, email, telèfon).\n\n**Expected:** 200 OK amb propietaris que continguin 'barcelona'"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Propietaris - Només actius amb animals",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?nomesActius=true&ambAnimals=true&pageSize=10",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "nomesActius",
+									"value": "true"
+								},
+								{
+									"key": "ambAnimals",
+									"value": "true"
+								},
+								{
+									"key": "pageSize",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Filtra només propietaris actius que tinguin animals.\n\n**Expected:** 200 OK amb propietaris actius i totalAnimals > 0"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Propietari By ID - Detall complet",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris/cfe68687-4c04-4795-90d5-07f40219cb23",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris",
+								"cfe68687-4c04-4795-90d5-07f40219cb23"
+							]
+						},
+						"description": "Detall complet d'un propietari específic amb telèfons i animals.\n\n**Expected:** 200 OK amb info completa: dades personals, adreça, telèfons (tipus, ordre), llista animals"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Propietaris - Per població",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?poblacio=Barcelona&pageSize=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "poblacio",
+									"value": "Barcelona"
+								},
+								{
+									"key": "pageSize",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Filtra propietaris per població.\n\n**Expected:** 200 OK amb propietaris de Barcelona"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Propietaris - Validacions (Errors)",
+			"item": [
+				{
+					"name": "ERROR: PageNumber = 0 (mínim 1)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?pageNumber=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "0"
+								}
+							]
+						},
+						"description": "Validació: PageNumber ha de ser >= 1.\n\n**Expected:** 400 Bad Request amb detall de validació"
+					},
+					"response": []
+				},
+				{
+					"name": "ERROR: PageSize > 50 (màxim)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?pageSize=100",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "pageSize",
+									"value": "100"
+								}
+							]
+						},
+						"description": "Validació: PageSize màxim 50.\n\n**Expected:** 400 Bad Request"
+					},
+					"response": []
+				},
+				{
+					"name": "ERROR: SearchTerm massa curt (mínim 2)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris?searchTerm=a",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris"
+							],
+							"query": [
+								{
+									"key": "searchTerm",
+									"value": "a"
+								}
+							]
+						},
+						"description": "Validació: SearchTerm mínim 2 caràcters.\n\n**Expected:** 400 Bad Request"
+					},
+					"response": []
+				},
+				{
+					"name": "ERROR: Propietari inexistent (404)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/propietaris/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"propietaris",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						},
+						"description": "Propietari amb GUID que no existeix.\n\n**Expected:** 404 Not Found"
 					},
 					"response": []
 				}
