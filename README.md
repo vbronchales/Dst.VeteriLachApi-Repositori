@@ -246,6 +246,56 @@ _Fase base completada. Properament: API de Propietaris i Historial Clínic._
 
 ---
 
+## 🌿 Git & Branching Strategy
+
+Aquest projecte utilitza **Feature Branching** amb **Pull Requests obligatòries**.
+
+### 🔒 Regles de Protecció
+
+- ❌ **NO es pot pujar directament a `main`**
+- ✅ **Totes les features via Pull Request**
+- ✅ **Branca `main` està protegida**
+- ✅ **Commits atòmics i descriptius**
+
+### 📋 Workflow Ràpid
+
+```bash
+# 1. Crear branca de feature
+git checkout main
+git pull origin main
+git checkout -b feature/fase-8-propietaris-api
+
+# 2. Desenvolupar i fer commits
+git add .
+git commit -m "Descripció del canvi"
+
+# 3. Pujar i crear PR
+git push -u origin feature/fase-8-propietaris-api
+# Crear Pull Request a GitHub
+
+# 4. Després del merge, netejar
+git checkout main
+git pull origin main
+git branch -d feature/fase-8-propietaris-api
+```
+
+### 📖 Documentació Completa
+
+Consulta **[BRANCHING-STRATEGY.md](BRANCHING-STRATEGY.md)** per:
+- Nomenclatura de branques (`feature/`, `fix/`, `refactor/`, etc.)
+- Templates de Pull Requests
+- Workflow detallat per fase
+- Exemples pràctics
+- Checklist pre-merge
+
+### 🔗 Links Ràpids
+
+- [Estratègia Completa](BRANCHING-STRATEGY.md)
+- [Template PR](.github/pull_request_template.md)
+- [Configurar Branch Protection](https://github.com/vbronchales/Dst.VeteriLachApi-Repositori/settings/branches)
+
+---
+
 ## 🔧 Configuració
 
 ### Connection String
