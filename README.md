@@ -172,6 +172,102 @@ GET /api/animals/{id}
 
 ---
 
+### Propietaris
+
+#### Llista paginada amb filtres
+```powershell
+# Llista bàsica (pàgina 1, 20 items)
+GET /api/propietaris
+
+# Amb paginació personalitzada
+GET /api/propietaris?pageNumber=2&pageSize=10
+
+# Cerca per nom, cognoms, email o telèfon
+GET /api/propietaris?searchTerm=barcelona
+
+# Filtrar només actius
+GET /api/propietaris?nomesActius=true
+
+# Filtrar per població
+GET /api/propietaris?poblacio=Barcelona
+
+# Filtrar propietaris amb animals
+GET /api/propietaris?ambAnimals=true
+
+# Combinació de filtres
+GET /api/propietaris?nomesActius=true&ambAnimals=true&poblacio=Barcelona
+```
+
+**Resposta paginada:**
+```json
+{
+  "data": [
+    {
+      "idPropietari": "cfe68687-4c04-4795-90d5-07f40219cb23",
+      "nom": "CAN MASCOTA",
+      "cognoms": "",
+      "email": "",
+      "telefon": "932964165",
+      "poblacio": "BARCELONA",
+      "codiPostal": "08014",
+      "totalAnimals": 1,
+      "actiu": true
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "pageSize": 10,
+    "totalItems": 5916,
+    "totalPages": 592,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
+
+#### Detall d'un propietari
+```powershell
+GET /api/propietaris/{id}
+```
+
+**Resposta amb telèfons i animals:**
+```json
+{
+  "idPropietari": "cfe68687-4c04-4795-90d5-07f40219cb23",
+  "nom": "CAN MASCOTA",
+  "cognoms": "",
+  "email": "",
+  "ambWhatsApp": false,
+  "adresa": "C/ CONSTITUCION, 79",
+  "codiPostal": "08014",
+  "poblacio": "BARCELONA",
+  "provincia": "BARCELONA",
+  "telefons": [
+    {
+      "numero": "932964165",
+      "tipusTelefon": 1,
+      "tipusTelefonDescripcio": "Fix",
+      "ordre": 1
+    }
+  ],
+  "animals": [
+    {
+      "idAnimal": "86a052f4-a1bc-4c5c-bc9e-0fe633cbc5e0",
+      "nom": "PALOMA ARCOIRIS",
+      "especie": "OCELL",
+      "rasa": "PALOMA",
+      "sexe": "0",
+      "dataNaixement": "2013-03-15T13:14:35.297",
+      "numXip": "",
+      "castrat": false
+    }
+  ],
+  "actiu": true
+}
+```
+
+---
+
 ## 📁 Estructura del Projecte
 
 ```
@@ -232,14 +328,14 @@ VeteriLach.ReadApi/
 - **Fase 5**: MediatR i CQRS implementat
 - **Fase 6**: AutoMapper i perfils de mapatge
 - **Fase 7**: FluentValidation amb pipeline behaviors i filtre global
+- **Fase 8**: API de Propietaris (GET llista paginada amb filtres, GET detall amb animals i telèfons)
 
 ### 🔄 En Desenvolupament
 
-_Fase base completada. Properament: API de Propietaris i Historial Clínic._
+_Properament: API d'Historial Clínic._
 
 ### 📅 Planificat
 
-- API de Propietaris
 - API d'Historial Clínic
 - Integració CimaVet i CIMA (medicaments veterinaris/humans)
 - API de Vendes i Estoc (Fase 2)
