@@ -7,4 +7,9 @@ public class TextVisitaDto
 {
     public int IndexText { get; set; }
     public string TextPla { get; set; } = null!;
+    
+    /// <summary>
+    /// Seccions estructurades del text (si es detecten)
+    /// </summary>
+    public SeccioTextVisitaDto? Seccions { get; set; }
 }
