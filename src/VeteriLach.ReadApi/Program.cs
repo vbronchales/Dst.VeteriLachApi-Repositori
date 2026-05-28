@@ -115,6 +115,9 @@ try
     // ===== Configurar FluentValidation =====
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
+    // ===== Registrar serveis d'aplicació =====
+    builder.Services.AddScoped<VeteriLach.ReadApi.Application.MedicalHistory.Services.TextVisitaParserService>();
+
     var app = builder.Build();
 
     // ===== Configure the HTTP request pipeline =====
