@@ -513,6 +513,13 @@ Els logs es guarden a la carpeta `logs/`:
 ### PRD
 Consulta el PRD complet a la carpeta de documentació del projecte.
 
+### Deployment i Producció
+- **[DEPLOYMENT.md](DEPLOYMENT.md)**: Guia completa de deployment a IIS (local i remot)
+- **[SCRIPTS-README.md](SCRIPTS-README.md)**: Documentació dels scripts de deployment
+- **Deploy-Local-Auto.ps1**: Script d'automatització (s'auto-eleva a Administrador) ⭐ Recomanat
+- **Deploy-Local.ps1**: Script de deployment (requereix executar PowerShell com a Admin)
+- **Build-And-Publish.ps1**: Només build i publish (no configura IIS)
+
 ---
 
 ## 🛠️ Desenvolupament
@@ -527,10 +534,42 @@ dotnet run --environment Development
 dotnet build
 ```
 
-### Publicar per a IIS
+### Deployment a IIS
+
+#### Deployment Local Automàtic (Recomanat) ⭐
+Després de fer merge d'una fase, executa el script d'automatització:
+
 ```powershell
-dotnet publish -c Release -o ./publish
+# Des de la carpeta arrel (s'auto-eleva a Administrador)
+.\Deploy-Local-Auto.ps1
 ```
+
+Aquest script fa tot el procés automàticament:
+- Demana permisos d'Administrador automàticament
+- Build i publicació en mode Release
+- Creació/actualització de l'Application Pool i Site a IIS
+- Configuració de permisos
+- Test del Health endpoint
+
+**Configuració per defecte:**
+- Site: VeteriLachReadAPI
+- Port: 41228 (detecta automàticament si està ocupat)
+- URL: http://localhost:41228
+
+**Alternativa (només build sense IIS):**
+```powershell
+# Si només vols generar fitxers (no requereix Administrador)
+.\Build-And-Publish.ps1
+```
+
+#### Deployment Manual i Remot
+
+Consulta la **[Guia de Deployment Completa (DEPLOYMENT.md)](DEPLOYMENT.md)** per:
+- Instruccions pas a pas per deployment manual a IIS local
+- Deployment a servidors remots (sense pipelines)
+- Configuració de producció (API Keys, connection strings)
+- Troubleshooting i resolució de problemes
+- Configuració HTTPS amb certificats
 
 ---
 

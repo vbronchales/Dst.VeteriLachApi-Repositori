@@ -1,0 +1,47 @@
+{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft.AspNetCore": "Warning",
+      "Microsoft.EntityFrameworkCore.Database.Command": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  
+  "ConnectionStrings": {
+    "VeteriLachDb": "Server=TU_SERVIDOR_SQL_PRODUCCIÓ;Database=CanMascotaBd;User Id=USUARI_PRODUCCIÓ;Password=PASSWORD_PRODUCCIÓ;TrustServerCertificate=True;MultipleActiveResultSets=True;"
+  },
+  
+  "ApiKeys": {
+    "MCPServer": "HASH_SHA256_DE_LA_CLAU_PRODUCCIÓ_1",
+    "SwaggerUI": "HASH_SHA256_DE_LA_CLAU_PRODUCCIÓ_2",
+    "OtherClient": "HASH_SHA256_DE_LA_CLAU_PRODUCCIÓ_3"
+  },
+  
+  "Serilog": {
+    "MinimumLevel": {
+      "Default": "Warning",
+      "Override": {
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.EntityFrameworkCore": "Warning"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "outputTemplate": "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"
+        }
+      },
+      {
+        "Name": "File",
+        "Args": {
+          "path": "logs/veterilach-api-.txt",
+          "rollingInterval": "Day",
+          "retainedFileCountLimit": 30,
+          "outputTemplate": "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"
+        }
+      }
+    ]
+  }
+}

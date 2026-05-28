@@ -65,7 +65,7 @@ public class MedicalHistoryController : ControllerBase
     /// </summary>
     /// <param name="id">ID de la visita</param>
     /// <returns>Detall complet de la visita amb textos, proves i vacunes</returns>
-    [HttpGet("{id}")]
+    [HttpGet]
     [Route("/api/visits/{id}")]
     [ProducesResponseType(typeof(VisitaDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
