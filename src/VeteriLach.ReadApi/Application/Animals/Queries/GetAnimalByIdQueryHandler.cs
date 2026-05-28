@@ -1,3 +1,4 @@
+using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Animals.DTOs;
@@ -8,11 +9,16 @@ namespace VeteriLach.ReadApi.Application.Animals.Queries;
 public class GetAnimalByIdQueryHandler : IRequestHandler<GetAnimalByIdQuery, AnimalDetailDto?>
 {
     private readonly VeteriLachDbContext _context;
+    private readonly IMapper _mapper;
     private readonly ILogger<GetAnimalByIdQueryHandler> _logger;
 
-    public GetAnimalByIdQueryHandler(VeteriLachDbContext context, ILogger<GetAnimalByIdQueryHandler> logger)
+    public GetAnimalByIdQueryHandler(
+        VeteriLachDbContext context,
+        IMapper mapper,
+        ILogger<GetAnimalByIdQueryHandler> logger)
     {
         _context = context;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -29,34 +35,6 @@ public class GetAnimalByIdQueryHandler : IRequestHandler<GetAnimalByIdQuery, Ani
                 .ThenInclude(p => p.IdPropietari1)
                     .ThenInclude(s => s.SlcTelefons)
             .Where(a => a.IdAnimal == request.IdAnimal)
-            .Select(a => new AnimalDetailDto
-            {
-                IdAnimal = a.IdAnimal,
-                Nom = a.IdAnimalNavigation.IdPacient1.Nom ?? string.Empty,
-                Sexe = a.IdAnimalNavigation.IdPacient1.Sexe,
-                DataNaixement = a.IdAnimalNavigation.IdPacient1.Naixement,
-                Especie = a.IdRasaNavigation.IdEspecieNavigation.Nom ?? string.Empty,
-                Rasa = a.IdRasaNavigation.Nom ?? string.Empty,
-                Color = a.Color,
-                NumXip = a.NumXip,
-                Castrat = a.Castrat,
-                Capa = a.Capa,
-                Tatuatge = a.Tatuatge,
-                Caracter = a.Caracter,
-                Propietari = new PropietariDto
-                {
-                    IdPropietari = a.IdPropietari,
-                    Nom = a.IdPropietariNavigation.IdPropietari1.Nom ?? string.Empty,
-                    Cognoms = (a.IdPropietariNavigation.IdPropietari1.Cognom1 ?? "") + " " + (a.IdPropietariNavigation.IdPropietari1.Cognom2 ?? ""),
-                    Email = a.IdPropietariNavigation.IdPropietari1.Email,
-                    Telefon = a.IdPropietariNavigation.IdPropietari1.SlcTelefons.FirstOrDefault() != null
-                        ? a.IdPropietariNavigation.IdPropietari1.SlcTelefons.FirstOrDefault()!.Numero
-                        : null,
-                    Adresa = a.IdPropietariNavigation.IdPropietari1.Adresa,
-                    CodiPostal = a.IdPropietariNavigation.IdPropietari1.CodiPostal,
-                    Poblacio = a.IdPropietariNavigation.IdPropietari1.Poblacio
-                }
-            })
             .FirstOrDefaultAsync(cancellationToken);
 
         if (animal == null)
@@ -65,7 +43,10 @@ public class GetAnimalByIdQueryHandler : IRequestHandler<GetAnimalByIdQuery, Ani
             return null;
         }
 
-        _logger.LogInformation("Animal {IdAnimal} recuperat correctament: {Nom}", request.IdAnimal, animal.Nom);
-        return animal;
+        _logger.LogInformation("Animal {IdAnimal} recuperat correctament: {Nom}", 
+            request.IdAnimal, animal.IdAnimalNavigation.IdPacient1.Nom);
+
+        // Utilitzar AutoMapper per mapejar l'entitat al DTO
+        return _mapper.Map<AnimalDetailDto>(animal);
     }
 }

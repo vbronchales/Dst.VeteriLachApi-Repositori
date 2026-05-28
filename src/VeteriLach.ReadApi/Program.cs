@@ -103,8 +103,11 @@ try
         cfg.AddOpenBehavior(typeof(VeteriLach.ReadApi.Application.Common.Behaviors.LoggingBehavior<,>));
     });
 
-    // TODO: Afegir AutoMapper, FluentValidation en fases posteriors
-    // builder.Services.AddAutoMapper(typeof(Program).Assembly);
+    // ===== Configurar AutoMapper =====
+    builder.Services.AddAutoMapper(typeof(Program).Assembly);
+
+    // TODO: Afegir FluentValidation en la següent fase
+    // builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
     var app = builder.Build();
 

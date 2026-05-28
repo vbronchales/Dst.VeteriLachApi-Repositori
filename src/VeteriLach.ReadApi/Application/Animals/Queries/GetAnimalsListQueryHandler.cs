@@ -1,3 +1,5 @@
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Animals.DTOs;
@@ -9,11 +11,16 @@ namespace VeteriLach.ReadApi.Application.Animals.Queries;
 public class GetAnimalsListQueryHandler : IRequestHandler<GetAnimalsListQuery, PaginatedResult<AnimalListDto>>
 {
     private readonly VeteriLachDbContext _context;
+    private readonly IMapper _mapper;
     private readonly ILogger<GetAnimalsListQueryHandler> _logger;
 
-    public GetAnimalsListQueryHandler(VeteriLachDbContext context, ILogger<GetAnimalsListQueryHandler> logger)
+    public GetAnimalsListQueryHandler(
+        VeteriLachDbContext context,
+        IMapper mapper,
+        ILogger<GetAnimalsListQueryHandler> logger)
     {
         _context = context;
+        _mapper = mapper;
         _logger = logger;
     }
 
@@ -22,7 +29,7 @@ public class GetAnimalsListQueryHandler : IRequestHandler<GetAnimalsListQuery, P
         _logger.LogInformation("Obtenint llista d'animals. Page: {PageNumber}, Size: {PageSize}, Search: {SearchTerm}",
             request.PageNumber, request.PageSize, request.SearchTerm);
 
-        // Query base
+        // Query base amb eager loading
         var query = _context.VetAnimals
             .Include(a => a.IdAnimalNavigation)
                 .ThenInclude(p => p.IdPacient1)
@@ -52,23 +59,12 @@ public class GetAnimalsListQueryHandler : IRequestHandler<GetAnimalsListQuery, P
         // Total items abans de paginar
         var totalItems = await query.CountAsync(cancellationToken);
 
-        // Paginació
+        // Paginació amb ProjectTo d'AutoMapper (més eficient)
         var animals = await query
             .OrderBy(a => a.IdAnimalNavigation.IdPacient1.Nom)
             .Skip((request.PageNumber - 1) * request.PageSize)
             .Take(request.PageSize)
-            .Select(a => new AnimalListDto
-            {
-                IdAnimal = a.IdAnimal,
-                Nom = a.IdAnimalNavigation.IdPacient1.Nom ?? string.Empty,
-                Sexe = a.IdAnimalNavigation.IdPacient1.Sexe,
-                DataNaixement = a.IdAnimalNavigation.IdPacient1.Naixement,
-                Especie = a.IdRasaNavigation.IdEspecieNavigation.Nom ?? string.Empty,
-                Rasa = a.IdRasaNavigation.Nom ?? string.Empty,
-                Color = a.Color,
-                NumXip = a.NumXip,
-                Castrat = a.Castrat
-            })
+            .ProjectTo<AnimalListDto>(_mapper.ConfigurationProvider)
             .ToListAsync(cancellationToken);
 
         _logger.LogInformation("S'han recuperat {Count} animals de {TotalItems} totals", animals.Count, totalItems);
