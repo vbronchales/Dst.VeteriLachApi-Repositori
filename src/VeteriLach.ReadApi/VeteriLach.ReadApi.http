@@ -1,0 +1,6 @@
+@VeteriLach.ReadApi_HostAddress = http://localhost:5072
+
+GET {{VeteriLach.ReadApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

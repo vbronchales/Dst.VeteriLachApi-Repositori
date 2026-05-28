@@ -1,0 +1,5 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/VeteriLach.ReadApi/VeteriLach.ReadApi.csproj" />
+  </Folder>
+</Solution>
