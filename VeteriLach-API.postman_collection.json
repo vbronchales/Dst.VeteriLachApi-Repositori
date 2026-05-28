@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "veterilach-api-2026",
-		"name": "VeteriLach Read API - Fase 8",
-		"description": "Col·lecció completa de proves per a VeteriLach Read API.\n\n**Fases implementades:**\n- Fase 0-3: Setup, configuració, API Keys\n- Fase 4: Entity Framework Core (151 entitats)\n- Fase 5: MediatR/CQRS\n- Fase 6: AutoMapper\n- Fase 7: FluentValidation\n- Fase 8: API de Propietaris\n\n**Variables:**\n- `baseUrl`: http://localhost:5072\n- `apiKey`: swagger-test-key-123",
+		"name": "VeteriLach Read API - Fase 9",
+		"description": "Col·lecció completa de proves per a VeteriLach Read API.\n\n**Fases implementades:**\n- Fase 0-3: Setup, configuració, API Keys\n- Fase 4: Entity Framework Core (151 entitats)\n- Fase 5: MediatR/CQRS\n- Fase 6: AutoMapper\n- Fase 7: FluentValidation\n- Fase 8: API de Propietaris\n- Fase 9: API d'Historial Clínic\n\n**Variables:**\n- `baseUrl`: http://localhost:5072\n- `apiKey`: swagger-test-key-123",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -896,6 +896,257 @@
 							]
 						},
 						"description": "Propietari amb GUID que no existeix.\n\n**Expected:** 404 Not Found"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Historial Clínic - Queries Vàlides",
+			"item": [
+				{
+					"name": "Get Visites - Animal amb historial (default pageSize=20)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/animals/ba96fa79-710c-4974-9770-24de069bf5fc/visits",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"ba96fa79-710c-4974-9770-24de069bf5fc",
+								"visits"
+							]
+						},
+						"description": "Llista de visites d'un animal (MAX - Bichon Maltès amb 18 visites).\n\n**Expected:** 200 OK amb PaginatedResult<VisitaResumatDto> (diaVisita, veterinari, resum, pes, totalTextos, totalProves, totalVacunes)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Visites - Amb paginació (pageSize=5)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/animals/ba96fa79-710c-4974-9770-24de069bf5fc/visits?pageSize=5",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"ba96fa79-710c-4974-9770-24de069bf5fc",
+								"visits"
+							],
+							"query": [
+								{
+									"key": "pageSize",
+									"value": "5"
+								}
+							]
+						},
+						"description": "Llista de 5 visites per pàgina.\n\n**Expected:** 200 OK amb 5 items, pagination.totalItems=18"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Visites - Filtre per dates (2010-01 a 2010-02)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/animals/ba96fa79-710c-4974-9770-24de069bf5fc/visits?dataInici=2010-01-01&dataFi=2010-02-28",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"ba96fa79-710c-4974-9770-24de069bf5fc",
+								"visits"
+							],
+							"query": [
+								{
+									"key": "dataInici",
+									"value": "2010-01-01"
+								},
+								{
+									"key": "dataFi",
+									"value": "2010-02-28"
+								}
+							]
+						},
+						"description": "Visites entre gener i febrer 2010.\n\n**Expected:** 200 OK amb 5 visites filtrades per data"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Visita - Detall complet amb textos i vacuna",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/visits/260d97cf-d952-43a2-859d-debfc01ba908",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"visits",
+								"260d97cf-d952-43a2-859d-debfc01ba908"
+							]
+						},
+						"description": "Detall d'una visita amb 3 textos clínics i 1 vacuna (TETRAVALENTE).\n\n**Expected:** 200 OK amb VisitaDetailDto (veterinari, textosClínics[], vacunes[], proves[])"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Visita - Detall només amb textos (sense proves ni vacunes)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/visits/7516b328-ee5d-4e60-a5d0-adb0ea51cd2e",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"visits",
+								"7516b328-ee5d-4e60-a5d0-adb0ea51cd2e"
+							]
+						},
+						"description": "Visita amb només 1 text clínic (ficha facturas).\n\n**Expected:** 200 OK amb VisitaDetailDto, proves=[], vacunes=[]"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Historial Clínic - Validacions (Errors)",
+			"item": [
+				{
+					"name": "Get Visites - PageNumber=0 (Invalid)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/animals/ba96fa79-710c-4974-9770-24de069bf5fc/visits?pageNumber=0",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"ba96fa79-710c-4974-9770-24de069bf5fc",
+								"visits"
+							],
+							"query": [
+								{
+									"key": "pageNumber",
+									"value": "0"
+								}
+							]
+						},
+						"description": "PageNumber ha de ser > 0.\n\n**Expected:** 400 Bad Request amb validation error"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Visites - PageSize > 100 (Invalid)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/animals/ba96fa79-710c-4974-9770-24de069bf5fc/visits?pageSize=150",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"animals",
+								"ba96fa79-710c-4974-9770-24de069bf5fc",
+								"visits"
+							],
+							"query": [
+								{
+									"key": "pageSize",
+									"value": "150"
+								}
+							]
+						},
+						"description": "PageSize màxim és 100.\n\n**Expected:** 400 Bad Request"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Visita - ID inexistent (404)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "X-API-Key",
+								"value": "{{apiKey}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/visits/00000000-0000-0000-0000-000000000000",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"visits",
+								"00000000-0000-0000-0000-000000000000"
+							]
+						},
+						"description": "Visita amb GUID que no existeix.\n\n**Expected:** 404 Not Found"
 					},
 					"response": []
 				}
