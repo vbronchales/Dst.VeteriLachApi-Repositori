@@ -1,7 +1,12 @@
 using Serilog;
 using VeteriLach.ReadApi.Middleware;
+using VeteriLach.ReadApi.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ===== Afegir appsettings.Local.json per a configuració local amb secrets =====
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // ===== Configurar Serilog =====
 Log.Logger = new LoggerConfiguration()
@@ -80,6 +85,14 @@ try
                 Array.Empty<string>()
             }
         });
+    });
+
+    // ===== Configurar Entity Framework Core =====
+    builder.Services.AddDbContext<VeteriLachDbContext>(options =>
+    {
+        options.UseSqlServer(builder.Configuration.GetConnectionString("VeteriLachDb"));
+        // Només lectura: deshabilitar tracking per millorar rendiment
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
     });
 
     // TODO: Afegir MediatR, AutoMapper, FluentValidation en fases posteriors
