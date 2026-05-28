@@ -90,26 +90,158 @@ Invoke-RestMethod -Uri "https://localhost:7001/api/animals/1" -Headers $headers
 
 ---
 
+## 🐾 Endpoints Disponibles
+
+### Animals
+
+#### Llista paginada amb filtres
+```powershell
+# Llista bàsica (pàgina 1, 20 items)
+GET /api/animals
+
+# Amb paginació personalitzada
+GET /api/animals?pageNumber=2&pageSize=10
+
+# Cerca per nom o microxip
+GET /api/animals?searchTerm=RICHI
+
+# Filtrar per propietari
+GET /api/animals?idPropietari={guid}
+
+# Filtrar per espècie
+GET /api/animals?idEspecie={guid}
+
+# Combinació de filtres
+GET /api/animals?pageNumber=1&pageSize=5&searchTerm=max&idEspecie={guid}
+```
+
+**Resposta paginada:**
+```json
+{
+  "data": [
+    {
+      "idAnimal": "f0484004-ba6f-4722-b5be-000b84e22835",
+      "nom": "RICHI",
+      "sexe": 1,
+      "dataNaixement": "2024-01-04T15:37:37",
+      "especie": "ROSSEGADOR",
+      "rasa": "HAMSTER",
+      "color": null,
+      "numXip": null,
+      "castrat": false
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "pageSize": 5,
+    "totalItems": 7644,
+    "totalPages": 1529,
+    "hasNextPage": true,
+    "hasPreviousPage": false
+  }
+}
+```
+
+#### Detall d'un animal
+```powershell
+GET /api/animals/{id}
+```
+
+**Resposta amb propietari:**
+```json
+{
+  "success": true,
+  "data": {
+    "idAnimal": "f0484004-ba6f-4722-b5be-000b84e22835",
+    "nom": "RICHI",
+    "especie": "ROSSEGADOR",
+    "rasa": "HAMSTER",
+    "propietari": {
+      "idPropietari": "3ca37a46-6c43-40e0-badf-759fa663b7ed",
+      "nom": "CHIARA",
+      "cognoms": "SEMINATI ",
+      "email": "",
+      "telefon": "655342732",
+      "adresa": "CARRER ENT CORTINES 12",
+      "codiPostal": "08003",
+      "poblacio": "BARCELONA"
+    }
+  }
+}
+```
+
+---
+
 ## 📁 Estructura del Projecte
 
 ```
 VeteriLach.ReadApi/
 ├── Controllers/          # Controllers de l'API
 │   ├── HealthController.cs
+│   ├── AnimalsController.cs
 │   └── ...
 ├── Middleware/           # Middleware personalitzat
 │   └── ApiKeyAuthenticationMiddleware.cs
-├── Application/          # Lògica de negoci (MediatR)
+├── Application/          # Lògica de negoci (MediatR/CQRS)
 │   ├── Animals/
-│   ├── MedicalHistory/
-│   ├── Medicines/
-│   └── Common/
+│   │   ├── DTOs/        # Data Transfer Objects
+│   │   └── Queries/     # MediatR Queries i Handlers
+│   ├── Common/
+│   │   ├── Behaviors/   # MediatR Pipeline Behaviors
+│   │   ├── Mappings/    # AutoMapper Profiles
+│   │   └── Models/      # Models compartits (PaginatedResult, etc.)
+│   ├── MedicalHistory/  # (Futur)
+│   └── Medicines/       # (Futur)
 ├── Infrastructure/       # Accés a dades i serveis externs
 │   ├── Data/
-│   └── ExternalServices/
+│   │   ├── VeteriLachDbContext.cs
+│   │   └── Entities/    # EF Core Entities (151 taules)
+│   └── ExternalServices/ # (CimaVet/CIMA - Futur)
 ├── Program.cs            # Configuració de l'aplicació
 └── appsettings.json      # Configuració
 ```
+
+### Arquitectura Implementada
+
+**Pattern CQRS amb MediatR:**
+- ✅ Queries i Handlers per a operacions de lectura
+- ✅ DTOs separats per a llistes i detalls
+- ✅ LoggingBehavior pipeline per registrar temps d'execució
+
+**Mapatge amb AutoMapper:**
+- ✅ Perfils de mapatge centralitzats (Entity → DTO)
+- ✅ `ProjectTo<>()` per a optimització de queries SQL
+- ✅ `Map<>()` per a mapatges en memòria
+
+**Entity Framework Core:**
+- ✅ 151 entitats generades per scaffold de BD existent (CanMascotaBd)
+- ✅ QueryTrackingBehavior.NoTracking (API read-only)
+- ✅ Eager loading optimitzat per evitar N+1 queries
+
+---
+
+## 🏗️ Estat de Desenvolupament
+
+### ✅ Fases Completades
+
+- **Fase 0**: Setup i preparació (.NET 10, EF Core, Git)
+- **Fase 1**: Repositori GitHub creat i configurat
+- **Fase 2**: Solució i projecte creat amb tots els packages
+- **Fase 3**: Configuració completa (API Keys SHA256, Serilog, Swagger)
+- **Fase 4**: Entity Framework Core scaffold (151 entitats)
+- **Fase 5**: MediatR i CQRS implementat
+- **Fase 6**: AutoMapper i perfils de mapatge
+
+### 🔄 En Desenvolupament
+
+- **Fase 7**: FluentValidation (validació de queries i DTOs)
+
+### 📅 Planificat
+
+- API de Propietaris
+- API d'Historial Clínic
+- Integració CimaVet i CIMA (medicaments veterinaris/humans)
+- API de Vendes i Estoc (Fase 2)
 
 ---
 
