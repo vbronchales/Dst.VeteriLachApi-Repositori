@@ -268,6 +268,98 @@ GET /api/propietaris/{id}
 
 ---
 
+### Historial Clínic
+
+#### Llista de visites d'un animal
+```powershell
+# Llista bàsica (pàgina 1, 20 items)
+GET /api/animals/{idAnimal}/visits
+
+# Amb paginació personalitzada
+GET /api/animals/{idAnimal}/visits?pageNumber=2&pageSize=10
+
+# Filtrar per període de dates
+GET /api/animals/{idAnimal}/visits?dataInici=2020-01-01&dataFi=2020-12-31
+```
+
+**Resposta paginada:**
+```json
+{
+  "data": [
+    {
+      "idVisita": "260d97cf-d952-43a2-859d-debfc01ba908",
+      "diaVisita": "2010-01-26T18:04:15",
+      "veterinari": "PAOLA PINNA",
+      "resum": null,
+      "pes": 5500,
+      "totalTextos": 3,
+      "totalProves": 0,
+      "totalVacunes": 1
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "pageSize": 20,
+    "totalItems": 18,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPreviousPage": false
+  }
+}
+```
+
+#### Detall complet d'una visita
+```powershell
+GET /api/visits/{idVisita}
+```
+
+**Resposta amb textos clínics, proves i vacunes:**
+```json
+{
+  "idVisita": "260d97cf-d952-43a2-859d-debfc01ba908",
+  "idPacient": "ba96fa79-710c-4974-9770-24de069bf5fc",
+  "diaVisita": "2010-01-26T18:04:15",
+  "veterinari": {
+    "idDoctor": "d2fc2df5-9f40-4fb4-9c27-de898a1fa375",
+    "nom": "PAOLA PINNA",
+    "especialitat": "VETERINARI",
+    "numColegiat": ""
+  },
+  "resum": null,
+  "pes": 5500,
+  "alsada": null,
+  "tipusVisita": 1,
+  "textosClínics": [
+    {
+      "indexText": 1,
+      "textPla": "vacuna\ncome bien mini junior\ncaca bien \nse rasca los ojo y llora"
+    },
+    {
+      "indexText": 2,
+      "textPla": "todo ok\ntiene la congiuntiva mas roja..."
+    },
+    {
+      "indexText": 4,
+      "textPla": "milbemax\ntobradex colirio 2v/d por 7 dia..."
+    }
+  ],
+  "proves": [],
+  "vacunes": [
+    {
+      "idVacuna": "f9a8a9e5-6cab-4fef-afd3-09e044e89ce0",
+      "tipusVacuna": "TETRAVALENTE",
+      "diaVacuna": "2010-01-26T18:04:15",
+      "observacions": "",
+      "noRevacunar": false,
+      "frequenciaDies": 365,
+      "proximaVacuna": "2011-01-26T18:04:15"
+    }
+  ]
+}
+```
+
+---
+
 ## 📁 Estructura del Projecte
 
 ```
@@ -329,14 +421,14 @@ VeteriLach.ReadApi/
 - **Fase 6**: AutoMapper i perfils de mapatge
 - **Fase 7**: FluentValidation amb pipeline behaviors i filtre global
 - **Fase 8**: API de Propietaris (GET llista paginada amb filtres, GET detall amb animals i telèfons)
+- **Fase 9**: API d'Historial Clínic (GET visites per animal amb paginació i filtres de data, GET detall de visita amb textos, proves i vacunes)
 
 ### 🔄 En Desenvolupament
 
-_Properament: API d'Historial Clínic._
+_Properament: Integració CimaVet/CIMA per medicaments._
 
 ### 📅 Planificat
-
-- API d'Historial Clínic
+API d'Historial Clínic
 - Integració CimaVet i CIMA (medicaments veterinaris/humans)
 - API de Vendes i Estoc (Fase 2)
 
