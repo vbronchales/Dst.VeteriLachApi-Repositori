@@ -115,8 +115,17 @@ try
     // ===== Configurar FluentValidation =====
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
+    // ===== Configurar Memory Cache =====
+    builder.Services.AddMemoryCache();
+
     // ===== Registrar serveis d'aplicació =====
     builder.Services.AddScoped<VeteriLach.ReadApi.Application.MedicalHistory.Services.TextVisitaParserService>();
+
+    // ===== Registrar serveis externs (CimaVet i CIMA) =====
+    builder.Services.AddScoped<VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces.ICimaVetService,
+        VeteriLach.ReadApi.Infrastructure.ExternalServices.CimaVetService>();
+    builder.Services.AddScoped<VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces.ICimaService,
+        VeteriLach.ReadApi.Infrastructure.ExternalServices.CimaService>();
 
     var app = builder.Build();
 
