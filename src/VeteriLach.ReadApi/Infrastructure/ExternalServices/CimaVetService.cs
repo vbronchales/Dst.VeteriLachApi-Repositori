@@ -3,18 +3,21 @@ using Polly;
 using Polly.Retry;
 using VeteriLach.ReadApi.Application.Medicines.DTOs;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces;
+using VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback;
 
 namespace VeteriLach.ReadApi.Infrastructure.ExternalServices;
 
 /// <summary>
 /// Servei per integració amb CimaVet (medicaments veterinaris)
 /// Implementa retry policy amb Polly i cache de resultats
+/// Si l'API REST no retorna resultats, utilitza dades locals (XMLs) com a fallback
 /// </summary>
 public class CimaVetService : ICimaVetService
 {
     private readonly ILogger<CimaVetService> _logger;
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
+    private readonly ILocalMedicineDataProvider<VeterinaryMedicineDto> _localDataProvider;
     private readonly AsyncRetryPolicy _retryPolicy;
 
     // Cache TTL: 7 dies per a informació de medicaments (canvia poc)
@@ -23,11 +26,13 @@ public class CimaVetService : ICimaVetService
     public CimaVetService(
         ILogger<CimaVetService> logger,
         IMemoryCache cache,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        ILocalMedicineDataProvider<VeterinaryMedicineDto> localDataProvider)
     {
         _logger = logger;
         _cache = cache;
         _configuration = configuration;
+        _localDataProvider = localDataProvider;
 
         // Retry policy: 3 intents amb backoff exponencial
         _retryPolicy = Policy
@@ -61,27 +66,72 @@ public class CimaVetService : ICimaVetService
 
         _logger.LogInformation("Cercant medicaments veterinaris a CimaVet: {Query}, Espècie: {Species}", query, species ?? "Totes");
 
+        List<VeterinaryMedicineDto> results;
+
         try
         {
             // Executar amb retry policy
-            var results = await _retryPolicy.ExecuteAsync(async () =>
+            results = await _retryPolicy.ExecuteAsync(async () =>
             {
-                // TODO: Implementar crida real al web service SOAP de CimaVet
-                // Endpoint SOAP: https://www.cimavet.aemps.es/cimavet/...
-                
-                // Per ara, retornem mock data per desenvolupament
+                // NOTA: API REST de CimaVet actualment retorna 0 resultats
+                // Per ara utilitzem directament les dades locals (XMLs)
                 return await GetMockVeterinaryMedicinesAsync(query, species, cancellationToken);
             });
 
-            // Guardar a cache
-            _cache.Set(cacheKey, results, _cacheDuration);
+            // Si API retorna 0 resultats (o mock retorna 0), provar amb dades locals
+            if (results.Count == 0 && _localDataProvider.IsAvailable())
+            {
+                _logger.LogInformation("CimaVet retornà 0 resultats per '{Query}'. Utilitzant dades locals XML", query);
+                results = await _localDataProvider.SearchByNameAsync(query, cancellationToken);
+                
+                // Filtrar per espècie si s'especifica
+                if (!string.IsNullOrEmpty(species) && results.Count > 0)
+                {
+                    results = results.Where(m => 
+                        m.TargetSpecies.Any(s => s.Contains(species, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                if (results.Count > 0)
+                {
+                    _logger.LogInformation("Trobats {Count} medicaments veterinaris en dades locals XML", results.Count);
+                }
+            }
+
+            // Guardar a cache només si hi ha resultats
+            if (results.Count > 0)
+            {
+                _cache.Set(cacheKey, results, _cacheDuration);
+            }
 
             _logger.LogInformation("Trobats {Count} medicaments veterinaris per query: {Query}", results.Count, query);
             return results;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cercant medicaments veterinaris a CimaVet per query: {Query}", query);
+            _logger.LogError(ex, "Error cercant medicaments veterinaris per query: {Query}. Provant fallback", query);
+            
+            // Fallback complet a dades locals
+            if (_localDataProvider.IsAvailable())
+            {
+                _logger.LogInformation("Utilitzant dades locals XML com a fallback per '{Query}'", query);
+                results = await _localDataProvider.SearchByNameAsync(query, cancellationToken);
+                
+                if (!string.IsNullOrEmpty(species) && results.Count > 0)
+                {
+                    results = results.Where(m => 
+                        m.TargetSpecies.Any(s => s.Contains(species, StringComparison.OrdinalIgnoreCase))
+                    ).ToList();
+                }
+
+                if (results.Count > 0)
+                {
+                    _logger.LogInformation("Recuperats {Count} medicaments veterinaris de dades locals", results.Count);
+                    _cache.Set(cacheKey, results, _cacheDuration);
+                    return results;
+                }
+            }
+
             throw;
         }
     }
@@ -101,13 +151,27 @@ public class CimaVetService : ICimaVetService
 
         _logger.LogInformation("Obtenint medicament veterinari de CimaVet per codi: {CnCode}", cnCode);
 
+        VeterinaryMedicineDto? result;
+
         try
         {
-            var result = await _retryPolicy.ExecuteAsync(async () =>
+            result = await _retryPolicy.ExecuteAsync(async () =>
             {
-                // TODO: Implementar crida real al web service SOAP de CimaVet
+                // NOTA: API REST de CimaVet actualment no funciona correctament
                 return await GetMockMedicineByCodeAsync(cnCode, cancellationToken);
             });
+
+            // Si API no retorna res, provar amb dades locals
+            if (result == null && _localDataProvider.IsAvailable())
+            {
+                _logger.LogInformation("CimaVet no retornà medicament {CnCode}. Utilitzant dades locals XML", cnCode);
+                result = await _localDataProvider.GetByRegistrationNumberAsync(cnCode, cancellationToken);
+                
+                if (result != null)
+                {
+                    _logger.LogInformation("Medicament veterinari {CnCode} trobat en dades locals XML", cnCode);
+                }
+            }
 
             if (result != null)
             {
@@ -118,7 +182,19 @@ public class CimaVetService : ICimaVetService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error obtenint medicament veterinari {CnCode} de CimaVet", cnCode);
+            _logger.LogError(ex, "Error obtenint medicament veterinari {CnCode}. Provant fallback", cnCode);
+            
+            if (_localDataProvider.IsAvailable())
+            {
+                result = await _localDataProvider.GetByRegistrationNumberAsync(cnCode, cancellationToken);
+                if (result != null)
+                {
+                    _logger.LogInformation("Medicament veterinari {CnCode} recuperat de dades locals", cnCode);
+                    _cache.Set(cacheKey, result, _cacheDuration);
+                    return result;
+                }
+            }
+
             throw;
         }
     }
@@ -137,22 +213,51 @@ public class CimaVetService : ICimaVetService
 
         _logger.LogInformation("Cercant medicaments veterinaris per principi actiu: {ActiveIngredient}", activeIngredient);
 
+        List<VeterinaryMedicineDto> results;
+
         try
         {
-            var results = await _retryPolicy.ExecuteAsync(async () =>
+            results = await _retryPolicy.ExecuteAsync(async () =>
             {
-                // TODO: Implementar crida real al web service SOAP de CimaVet
+                // NOTA: API REST de CimaVet no funciona correctament actualment
                 return await GetMockByActiveIngredientAsync(activeIngredient, cancellationToken);
             });
 
-            _cache.Set(cacheKey, results, _cacheDuration);
+            // Si API retorna 0 resultats, provar amb dades locals
+            if (results.Count == 0 && _localDataProvider.IsAvailable())
+            {
+                _logger.LogInformation("CimaVet retornà 0 resultats per principi actiu '{ActiveIngredient}'. Utilitzant XML local", activeIngredient);
+                results = await _localDataProvider.SearchByActiveIngredientAsync(activeIngredient, cancellationToken);
+                
+                if (results.Count > 0)
+                {
+                    _logger.LogInformation("Trobats {Count} medicaments veterinaris en dades locals", results.Count);
+                }
+            }
+
+            if (results.Count > 0)
+            {
+                _cache.Set(cacheKey, results, _cacheDuration);
+            }
 
             _logger.LogInformation("Trobats {Count} medicaments amb principi actiu: {ActiveIngredient}", results.Count, activeIngredient);
             return results;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cercant medicaments per principi actiu {ActiveIngredient}", activeIngredient);
+            _logger.LogError(ex, "Error cercant per principi actiu {ActiveIngredient}. Provant fallback", activeIngredient);
+            
+            if (_localDataProvider.IsAvailable())
+            {
+                results = await _localDataProvider.SearchByActiveIngredientAsync(activeIngredient, cancellationToken);
+                if (results.Count > 0)
+                {
+                    _logger.LogInformation("Recuperats {Count} medicaments veterinaris de dades locals", results.Count);
+                    _cache.Set(cacheKey, results, _cacheDuration);
+                    return results;
+                }
+            }
+
             throw;
         }
     }

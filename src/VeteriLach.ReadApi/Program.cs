@@ -118,10 +118,19 @@ try
     // ===== Configurar Memory Cache =====
     builder.Services.AddMemoryCache();
 
+    // ===== Configurar HttpClient Factory per a serveis externs =====
+    builder.Services.AddHttpClient();
+
+    // ===== Registrar proveïdors de dades locals (XMLs) com a fallback =====
+    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.HumanMedicineDto>,
+        VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaLocalDataProvider>();
+    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.VeterinaryMedicineDto>,
+        VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaVetLocalDataProvider>();
+
     // ===== Registrar serveis d'aplicació =====
     builder.Services.AddScoped<VeteriLach.ReadApi.Application.MedicalHistory.Services.TextVisitaParserService>();
 
-    // ===== Registrar serveis externs (CimaVet i CIMA) =====
+    // ===== Registrar serveis externs (CimaVet i CIMA amb fallback a XMLs locals) =====
     builder.Services.AddScoped<VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces.ICimaVetService,
         VeteriLach.ReadApi.Infrastructure.ExternalServices.CimaVetService>();
     builder.Services.AddScoped<VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces.ICimaService,
