@@ -1,1069 +1,690 @@
-# VeteriLach MCP Server
+# VeteriLach MCP Server (HTTP)
 
 Servidor MCP (Model Context Protocol) per accedir a VeteriLach Read API des de l'aplicació d'escriptori de ChatGPT.
 
+## ⚠️ IMPORTANT - Transport HTTP
+
+Aquest servidor MCP utilitza **transport HTTP** (no stdio). ChatGPT Desktop requereix servidors MCP amb comunicació HTTP/REST, no stdin/stdout.
+
 ## Característiques
 
-- ✅ Protocol MCP estàndard (JSON-RPC 2.0 sobre stdio)
+- ✅ Protocol MCP estàndard (JSON-RPC 2.0 sobre HTTP)
 - ✅ **15 tools exposades** per accedir a tota la funcionalitat de l'API
-- ✅ Configuració mínima (URL API + API Key)
+- ✅ Servidor web autònom (no requereix instal·lació complexa)
 - ✅ Compatible amb ChatGPT Desktop
+- ✅ Endpoints HTTP RESTful
+
+## Arquitectura
+
+```
+ChatGPT Desktop
+      ↓
+ HTTP (JSON-RPC)
+      ↓
+MCP Server HTTP (port 5273)
+      ↓
+ HTTP REST API
+      ↓
+VeteriLach API (port 41229)
+      ↓
+ SQL Server
+```
 
 ## Índex
 
-- [Checklist d'Instal·lació Ràpida](#checklist-dinstal·lació-ràpida)
-- [Guia d'Instal·lació Completa](#guia-dinstal·lació-completa)
+- [Instal·lació Ràpida](#instal·lació-ràpida)
+- [Configuració de ChatGPT Desktop](#configuració-de-chatgpt-desktop)
+- [Endpoints HTTP](#endpoints-http)
 - [Tools Disponibles](#tools-disponibles)
-- [Test Manual i Depuració](#test-manual-i-depuració)
-- [Configuració Avançada](#configuració-avançada)
+- [Test Manual](#test-manual)
 - [Troubleshooting](#troubleshooting)
-- [Seguretat](#seguretat)
 
-## Checklist d'Instal·lació Ràpida
-
-Utilitza aquesta checklist per verificar que tens tot el necessari:
-
-### Requisits Previs
-- [ ] Windows 10/11 instal·lat
-- [ ] IIS instal·lat i configurat
-- [ ] .NET SDK 10.0 o superior (`dotnet --version`)
-- [ ] SQL Server amb base de dades VeteriLach
-- [ ] ChatGPT Desktop instal·lat
-- [ ] PowerShell amb permisos d'administrador
-
-### Instal·lació de l'API
-- [ ] Repositori clonat a `C:\Dst2026\Dst.VeteriLachApi-Repositori`
-- [ ] API publicada a `C:\inetpub\wwwroot\VeteriLachApi`
-- [ ] App Pool "VeteriLAchReadApiAppPool" creat i en marxa
-- [ ] Port 41229 configurat a IIS
-- [ ] ConnectionString configurat correctament a `appsettings.json`
-- [ ] API Key configurada
-- [ ] Health check funciona: http://localhost:41229/api/health
-
-### Instal·lació del Servidor MCP
-- [ ] Servidor MCP compilat: `dotnet build -c Release`
-- [ ] Binary generat a `mcp-server\bin\Release\net10.0\VeteriLach.McpServer.exe`
-- [ ] `appsettings.json` del servidor MCP configurat
-- [ ] Test manual del servidor funciona
-
-### Configuració de ChatGPT Desktop
-- [ ] Fitxer `claude_desktop_config.json` creat/editat
-- [ ] Path al `.exe` correcte amb dobles barres invertides
-- [ ] ChatGPT Desktop reiniciat
-- [ ] Servidor MCP detectat a ChatGPT Desktop
-- [ ] Test d'una tool funciona correctament
-
-## Tools Disponibles
-
-### Sales API (Vendes) - 5 tools
-
-#### 1. `get_sales`
-Obté una llista paginada de vendes amb filtres opcionals.
-
-**Paràmetres:**
-- `pageNumber` (opcional): Número de pàgina (defecte: 1)
-- `pageSize` (opcional): Mida de pàgina (defecte: 20, màx: 50)
-- `startDate` (opcional): Data inici (YYYY-MM-DD)
-- `endDate` (opcional): Data fi (YYYY-MM-DD)
-- `customerId` (opcional): ID client (GUID)
-- `sellerId` (opcional): ID venedor (GUID)
-- `animalId` (opcional): ID animal (GUID)
-- `onlyUnpaid` (opcional): Només vendes impagades
-
-#### 2. `get_sale_detail`
-Obté informació detallada d'una venda específica amb tots els articles.
-
-**Paràmetres:**
-- `saleId` (requerit): ID de la venda (GUID)
-
-#### 3. `get_customer_sales`
-Obté totes les vendes d'un client específic.
-
-**Paràmetres:**
-- `customerId` (requerit): ID client (GUID)
-- `pageNumber`, `pageSize`, `startDate`, `endDate` (opcionals)
-
-#### 4. `get_debts`
-Obté la llista de deutes (vendes impagades o parcialment pagades).
-
-**Paràmetres:**
-- `pageNumber`, `pageSize` (opcionals)
-- `customerId` (opcional): Filtrar per client
-- `minimumDays` (opcional): Dies mínims pendents
-- `minimumAmount` (opcional): Import mínim pendent
-
-#### 5. `get_payment_advances`
-Obté la llista d'acomptes de clients.
-
-**Paràmetres:**
-- `pageNumber`, `pageSize` (opcionals)
-- `customerId` (opcional): Filtrar per client
-- `startDate`, `endDate` (opcionals)
-
-### Propietaris API (Clients) - 2 tools
-
-#### 6. `get_propietaris`
-Obté una llista paginada de propietaris/clients amb filtres opcionals.
-
-**Paràmetres:**
-- `pageNumber`, `pageSize` (opcionals)
-- `searchTerm` (opcional): Cerca per nom, email o telèfon
-- `poblacio` (opcional): Filtrar per població
-- `codiPostal` (opcional): Filtrar per codi postal
-- `nomes_actius` (opcional): Només clients actius
-
-#### 7. `get_propietari_detail`
-Obté informació detallada d'un propietari incloent animals i telèfons.
-
-**Paràmetres:**
-- `propietariId` (requerit): ID del propietari (GUID)
-
-### Animals API (Mascotes) - 2 tools
-
-#### 8. `get_animals`
-Obté una llista paginada d'animals/mascotes amb filtres opcionals.
-
-**Paràmetres:**
-- `pageNumber`, `pageSize` (opcionals)
-- `searchTerm` (opcional): Cerca per nom o xip
-- `idPropietari` (opcional): Filtrar per propietari
-- `idEspecie` (opcional): Filtrar per espècie
-
-#### 9. `get_animal_detail`
-Obté informació detallada d'un animal incloent dades del propietari.
-
-**Paràmetres:**
-- `animalId` (requerit): ID de l'animal (GUID)
-
-### Medical History API (Historial Clínic) - 2 tools
-
-#### 10. `get_animal_visits`
-Obté l'historial de visites mèdiques d'un animal.
-
-**Paràmetres:**
-- `animalId` (requerit): ID de l'animal (GUID)
-- `pageNumber`, `pageSize` (opcionals)
-- `dataInici` (opcional): Data inici (YYYY-MM-DD)
-- `dataFi` (opcional): Data fi (YYYY-MM-DD)
-
-#### 11. `get_visit_detail`
-Obté detalls complets d'una visita veterinària incloent notes clíniques, proves i vacunes.
-
-**Paràmetres:**
-- `visitId` (requerit): ID de la visita (GUID)
-
-### Medicines API (Medicaments) - 4 tools
-
-#### 12. `search_veterinary_medicines`
-Cerca medicaments veterinaris a la base de dades CimaVet.
-
-**Paràmetres:**
-- `query` (requerit): Text de cerca (nom, principi actiu, codi)
-- `species` (opcional): Espècie animal
-
-#### 13. `get_veterinary_medicine`
-Obté informació detallada d'un medicament veterinari per codi nacional.
-
-**Paràmetres:**
-- `cnCode` (requerit): Codi Nacional (CN)
-
-#### 14. `search_human_medicines`
-Cerca medicaments humans a la base de dades CIMA.
-
-**Paràmetres:**
-- `query` (requerit): Text de cerca (nom, principi actiu, codi)
-
-#### 15. `get_human_medicine`
-Obté informació detallada d'un medicament humà per codi nacional.
-
-**Paràmetres:**
-- `cnCode` (requerit): Codi Nacional (CN)
-
-## Guia d'Instal·lació Completa
-
-Aquesta guia descriu com instal·lar i configurar el servidor MCP de VeteriLach en una màquina nova.
+## Instal·lació Ràpida
 
 ### Requisits Previs
 
-Abans de començar, assegura't que tens instal·lat:
+1. **Windows 10/11**
+2. **.NET SDK 10.0** o superior
+3. **VeteriLach Read API** funcionant a http://localhost:41229 (veure INSTALL.md)
+4. **ChatGPT Desktop** instal·lat
 
-1. **Windows** (provada en Windows 10/11)
-2. **IIS (Internet Information Services)** amb:
-   - ASP.NET Core Hosting Bundle 8.0 o superior
-   - Application Pools configurables
-3. **.NET SDK 10.0** o superior
-   ```powershell
-   # Verifica la versió
-   dotnet --version
-   ```
-4. **ChatGPT Desktop** (aplicació d'escriptori oficial)
-5. **SQL Server** amb la base de dades VeteriLach
-6. **PowerShell 5.1** o superior amb permisos d'administrador
-
-### Pas 1: Desplegar VeteriLach Read API a IIS
-
-#### 1.1 Publicar l'API
-
-Clona el repositori i compila l'API:
+### Pas 1: Compilar el Servidor MCP
 
 ```powershell
-# Clona el repositori
-cd C:\Dst2026
-git clone https://github.com/vbronchales/Dst.VeteriLachApi-Repositori.git
-cd Dst.VeteriLachApi-Repositori
-
-# Publica l'API
-dotnet publish src/VeteriLach.ReadApi/VeteriLach.ReadApi.csproj -c Release -o C:\temp\VeteriLachApi_publish
+cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server
+dotnet build --configuration Release
 ```
 
-#### 1.2 Configurar IIS
+### Pas 2: Configurar appsettings.json
 
-Obre **PowerShell com a Administrador** i executa:
-
-```powershell
-# Importa el mòdul d'IIS
-Import-Module WebAdministration
-
-# Crea l'App Pool
-New-WebAppPool -Name "VeteriLAchReadApiAppPool"
-Set-ItemProperty IIS:\AppPools\VeteriLAchReadApiAppPool -Name "managedRuntimeVersion" -Value ""
-
-# Crea el directori de l'aplicació
-New-Item -ItemType Directory -Force -Path "C:\inetpub\wwwroot\VeteriLachApi"
-
-# Copia els fitxers publicats
-Copy-Item -Path "C:\temp\VeteriLachApi_publish\*" -Destination "C:\inetpub\wwwroot\VeteriLachApi" -Recurse -Force
-
-# Crea el lloc web (si no existeix)
-New-WebSite -Name "VeteriLachReadApi" -Port 41229 -PhysicalPath "C:\inetpub\wwwroot\VeteriLachApi" -ApplicationPool "VeteriLAchReadApiAppPool" -Force
-
-# Inicia l'App Pool
-Start-WebAppPool -Name "VeteriLAchReadApiAppPool"
-```
-
-#### 1.3 Configurar appsettings.json de l'API
-
-Edita `C:\inetpub\wwwroot\VeteriLachApi\appsettings.json`:
+Edita `appsettings.json` si cal canviar la configuració:
 
 ```json
 {
-  "ConnectionStrings": {
-    "VeteriLachConnection": "Server=localhost;Database=CanMascotaBd;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=true"
-  },
-  "ApiKeys": {
-    "MCPServer": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4",
-    "SwaggerUI": "swagger-ui-key-2024",
-    "Development": "dev-key-local-2024",
-    "Test": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4"
-  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",
       "Microsoft.AspNetCore": "Warning"
     }
-  }
-}
-```
-
-**IMPORTANT**: Ajusta el `ConnectionString` segons la teva configuració de SQL Server.
-
-#### 1.4 Verificar que l'API funciona
-
-```powershell
-# Test de salut
-Invoke-WebRequest -Uri "http://localhost:41229/api/health" -UseBasicParsing
-
-# Test amb API Key
-Invoke-WebRequest -Uri "http://localhost:41229/api/sales?pageSize=1" -Headers @{"X-Api-Key"="4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4"} -UseBasicParsing
-```
-
-Si reps resposta 200 OK, l'API està funcionant correctament. Pots accedir a **Swagger** a:
-- http://localhost:41229/swagger
-
-### Pas 2: Compilar el Servidor MCP
-
-#### 2.1 Navega al directori del servidor MCP
-
-```powershell
-cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server
-```
-
-#### 2.2 Configura appsettings.json del servidor MCP
-
-Edita `appsettings.json` (ja hauria d'estar correcte):
-
-```json
-{
-  "VeteriLachApi": {
-    "BaseUrl": "http://localhost:41229",
-    "ApiKey": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4",
-    "TimeoutSeconds": 30
-  }
-}
-```
-
-**IMPORTANT**: 
-- `BaseUrl` ha de coincidir amb el port de l'API a IIS (41229)
-- `ApiKey` ha de coincidir amb una de les claus definides a l'API
-
-#### 2.3 Compila el servidor en mode Release
-
-```powershell
-dotnet build -c Release
-```
-
-El binari es generarà a:
-```
-mcp-server\bin\Release\net10.0\VeteriLach.McpServer.exe
-```
-
-#### 2.4 Verifica la compilació
-
-```powershell
-cd bin\Release\net10.0
-
-# Test d'inicialització
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | .\VeteriLach.McpServer.exe 2>$null
-
-# Hauries de veure una resposta JSON amb "protocolVersion": "2024-11-05"
-```
-
-### Pas 3: Configurar ChatGPT Desktop
-
-#### 3.1 Localitza el fitxer de configuració
-
-El fitxer de configuració de ChatGPT Desktop es troba a:
-
-**Windows:**
-```
-%APPDATA%\Claude\claude_desktop_config.json
-```
-
-Ruta completa (usualment):
-```
-C:\Users\[TeuUsuari]\AppData\Roaming\Claude\claude_desktop_config.json
-```
-
-#### 3.2 Crea o edita el fitxer de configuració
-
-Si el fitxer no existeix, crea'l. Si ja existeix, afegeix la secció `mcpServers`.
-
-**Contingut complet del fitxer:**
-
-```json
-{
-  "mcpServers": {
-    "veterilach": {
-      "command": "C:\\Dst2026\\Dst.VeteriLachApi-Repositori\\mcp-server\\bin\\Release\\net10.0\\VeteriLach.McpServer.exe",
-      "args": []
-    }
-  }
-}
-```
-
-**IMPORTANT**: 
-- Assegura't que el path apunta al fitxer .exe compilat
-- Usa dobles barres invertides (`\\`) en el path de Windows
-- Ajusta el path si has clonat el repositori en una ubicació diferent
-
-**Exemple amb múltiples servidors MCP:**
-
-```json
-{
-  "mcpServers": {
-    "veterilach": {
-      "command": "C:\\Dst2026\\Dst.VeteriLachApi-Repositori\\mcp-server\\bin\\Release\\net10.0\\VeteriLach.McpServer.exe",
-      "args": []
-    },
-    "altreServidor": {
-      "command": "C:\\path\\to\\other\\server.exe",
-      "args": []
-    }
-  }
-}
-```
-
-#### 3.3 Reinicia ChatGPT Desktop
-
-1. **Tanca completament** l'aplicació ChatGPT Desktop
-2. **Torna a obrir** l'aplicació
-3. El servidor MCP es carregarà automàticament
-
-### Pas 4: Verificar la Instal·lació
-
-#### 4.1 Comprova que ChatGPT detecta el servidor
-
-A ChatGPT Desktop, hauries de veure:
-- Una icona o indicador que mostra servidors MCP actius
-- El servidor "veterilach" llistat com a disponible
-
-#### 4.2 Prova una tool
-
-A ChatGPT Desktop, escriu:
-
-```
-Mostra'm les últimes 3 vendes utilitzant el servidor VeteriLach
-```
-
-o
-
-```
-Cerca animals amb el nom "Max"
-```
-
-Si funciona correctament, ChatGPT utilitzarà les tools del servidor MCP per obtenir les dades.
-
-#### 4.3 Logs i Depuració
-
-Si hi ha problemes, pots executar el servidor manualment per veure els logs:
-
-```powershell
-cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0
-
-# Executa el servidor (els logs surten per stderr)
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | .\VeteriLach.McpServer.exe
-
-# Hauries de veure 15 tools llistades
-```
-
-### Pas 5: Manteniment
-
-#### Actualitzar el servidor MCP
-
-Quan hi hagi noves versions del servidor MCP:
-
-```powershell
-cd C:\Dst2026\Dst.VeteriLachApi-Repositori
-
-# Actualitza el repositori
-git pull
-
-# Recompila el servidor MCP
-cd mcp-server
-dotnet build -c Release
-
-# Reinicia ChatGPT Desktop
-```
-
-**NO cal reconfigurar** `claude_desktop_config.json` si el path no canvia.
-
-#### Actualitzar l'API a IIS
-
-Quan hi hagi noves versions de l'API:
-
-```powershell
-cd C:\Dst2026\Dst.VeteriLachApi-Repositori
-
-# Actualitza el repositori
-git pull
-
-# Executa el script de deploy (com a Administrador)
-.\Quick-Deploy.ps1
-
-# O manualment:
-dotnet publish src/VeteriLach.ReadApi/VeteriLach.ReadApi.csproj -c Release -o C:\temp\VeteriLachApi_publish
-
-# Para l'App Pool
-Import-Module WebAdministration
-Stop-WebAppPool -Name "VeteriLAchReadApiAppPool"
-
-# Copia els fitxers
-Copy-Item -Path "C:\temp\VeteriLachApi_publish\*" -Destination "C:\inetpub\wwwroot\VeteriLachApi" -Recurse -Force -Exclude @("web.config", "*.log")
-
-# Reinicia l'App Pool
-Start-WebAppPool -Name "VeteriLAchReadApiAppPool"
-```
-
-## Test Manual i Depuració
-
-### Tests Bàsics
-
-#### Test 1: Verificar que el servidor inicia
-
-```powershell
-cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0
-
-echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' | .\VeteriLach.McpServer.exe 2>$null
-```
-
-**Resposta esperada**:
-```json
-{
-  "jsonrpc": "2.0",
-  "id": 1,
-  "result": {
-    "protocolVersion": "2024-11-05",
-    "serverInfo": {
-      "name": "veterilach-server",
-      "version": "1.0.0"
-    },
-    "capabilities": {
-      "tools": {}
-    }
-  }
-}
-```
-
-#### Test 2: Llistar totes les tools
-
-```powershell
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | .\VeteriLach.McpServer.exe 2>$null
-```
-
-Hauries de veure 15 tools llistades amb els seus esquemes.
-
-#### Test 3: Executar una tool (get_sales)
-
-```powershell
-echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_sales","arguments":{"pageSize":2}}}' | .\VeteriLach.McpServer.exe 2>$null
-```
-
-**Resposta esperada**: JSON amb dades de vendes de l'API.
-
-#### Test 4: Executar tool de propietaris
-
-```powershell
-echo '{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_propietaris","arguments":{"pageSize":3,"nomes_actius":true}}}' | .\VeteriLach.McpServer.exe 2>$null
-```
-
-#### Test 5: Executar tool de cerca de medicaments
-
-```powershell
-echo '{"jsonrpc":"2.0","id":5,"method":"tools/call","params":{"name":"search_veterinary_medicines","arguments":{"query":"amoxicilina","species":"Perro"}}}' | .\VeteriLach.McpServer.exe 2>$null
-```
-
-### Veure Logs del Servidor
-
-Per veure els logs mentre proves el servidor:
-
-```powershell
-# Redirigeix stderr a un fitxer
-echo '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' | .\VeteriLach.McpServer.exe 2> logs.txt
-
-# Mostra els logs
-Get-Content logs.txt
-```
-
-### Test de Connectivitat amb l'API
-
-```powershell
-# Health check
-Invoke-WebRequest -Uri "http://localhost:41229/api/health" -UseBasicParsing
-
-# Test amb API Key
-$headers = @{"X-Api-Key"="4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4"}
-Invoke-WebRequest -Uri "http://localhost:41229/api/sales?pageSize=1" -Headers $headers -UseBasicParsing
-
-# Test de propietaris
-Invoke-WebRequest -Uri "http://localhost:41229/api/propietaris?pageSize=1" -Headers $headers -UseBasicParsing
-
-# Test d'animals
-Invoke-WebRequest -Uri "http://localhost:41229/api/animals?pageSize=1" -Headers $headers -UseBasicParsing
-```
-
-## Configuració Avançada
-
-### Executar en una màquina diferent
-
-Si vols executar el servidor MCP en una màquina i accedir a l'API en una altra:
-
-1. **Configura l'API per acceptar connexions remotes** (a la màquina amb IIS):
-   ```powershell
-   # Afegeix un binding a IIS per l'IP de la màquina
-   New-WebBinding -Name "VeteriLachReadApi" -Protocol http -Port 41229 -IPAddress "*"
-   
-   # Obre el firewall
-   New-NetFirewallRule -DisplayName "VeteriLach API" -Direction Inbound -Protocol TCP -LocalPort 41229 -Action Allow
-   ```
-
-2. **Actualitza appsettings.json del servidor MCP** (a la màquina client):
-   ```json
-   {
-     "VeteriLachApi": {
-       "BaseUrl": "http://192.168.1.100:41229",  // IP de la màquina amb l'API
-       "ApiKey": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4",
-       "TimeoutSeconds": 30
-     }
-   }
-   ```
-
-### Múltiples Entorns (Desenvolupament, Producció)
-
-Pots crear múltiples fitxers de configuració:
-
-**appsettings.Development.json**:
-```json
-{
-  "VeteriLachApi": {
-    "BaseUrl": "http://localhost:41229",
-    "ApiKey": "dev-key-local-2024",
-    "TimeoutSeconds": 60
-  }
-}
-```
-
-**appsettings.Production.json**:
-```json
-{
-  "VeteriLachApi": {
-    "BaseUrl": "http://production-server:41229",
-    "ApiKey": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4",
-    "TimeoutSeconds": 30
-  }
-}
-```
-
-Per utilitzar un entorn específic:
-```json
-// claude_desktop_config.json
-{
-  "mcpServers": {
-    "veterilach-dev": {
-      "command": "C:\\path\\to\\VeteriLach.McpServer.exe",
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
-    },
-    "veterilach-prod": {
-      "command": "C:\\path\\to\\VeteriLach.McpServer.exe",
-      "env": {
-        "ASPNETCORE_ENVIRONMENT": "Production"
-      }
-    }
-  }
-}
-```
-
-### Configurar Logging Avançat
-
-Pots afegir logging més detallat creant un fitxer `appsettings.json` amb:
-
-```json
-{
+  },
+  "AllowedHosts": "*",
+  "Urls": "http://localhost:5273",
   "VeteriLachApi": {
     "BaseUrl": "http://localhost:41229",
     "ApiKey": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4",
     "TimeoutSeconds": 30
   },
-  "Logging": {
-    "LogLevel": {
-      "Default": "Debug",
-      "System": "Information",
-      "Microsoft": "Information"
+  "McpServer": {
+    "Name": "veterilach-server",
+    "Version": "1.0.0"
+  }
+}
+```
+
+### Pas 3: Executar el Servidor MCP
+
+#### Opció A: Executar manualment (desenvolupament)
+
+```powershell
+cd bin\Release\net10.0
+.\VeteriLach.McpServer.exe
+```
+
+#### Opció B: Com a servei de Windows (producció)
+
+Crea un servei de Windows perquè s'executi automàticament:
+
+```powershell
+# Instal·la NSSM (Non-Sucking Service Manager) primer
+# Des de https://nssm.cc/download
+
+# Crea el servei
+nssm install VeteriLachMcpServer "C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0\VeteriLach.McpServer.exe"
+
+# Configura el directori de treball
+nssm set VeteriLachMcpServer AppDirectory "C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0"
+
+# Inicia el servei
+nssm start VeteriLachMcpServer
+```
+
+### Pas 4: Verificar que funciona
+
+Obre el navegador o fes:
+
+```powershell
+# Test de salut
+curl http://localhost:5273/health
+
+# Resposta esperada:
+# {"status":"healthy","server":"veterilach-server","version":"1.0.0","timestamp":"..."}
+```
+
+## Configuració de ChatGPT Desktop
+
+### Localització del fitxer de configuració
+
+El fitxer de configuració de ChatGPT Desktop es troba a:
+
+```
+%APPDATA%\ChatGPT\mcp_config.json
+```
+
+Ruta completa (ajusta segons el teu usuari):
+```
+C:\Users\<TeuUsuari>\AppData\Roaming\ChatGPT\mcp_config.json
+```
+
+### Format de configuració per servidor HTTP
+
+Edita o crea el fitxer `mcp_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "veterilach": {
+      "url": "http://localhost:5273/messages",
+      "transport": "http"
     }
   }
 }
 ```
 
-## Arquitectura del Sistema
+**NOTES IMPORTANTS:**
+- La URL ha de ser exactament `http://localhost:5273/messages` (endpoint POST per MCP)
+- El camp `transport` ha de ser `"http"` (no `"stdio"`)
+- **NO** utilitzis `command`, `args` o `env` (això és per servidors stdio)
 
-### Flux de Comunicació
+### Reiniciar ChatGPT Desktop
 
-```
-┌─────────────────────┐
-│  ChatGPT Desktop    │
-│                     │
-│  "Mostra vendes"    │
-└──────────┬──────────┘
-           │ stdio (JSON-RPC 2.0)
-           ▼
-┌─────────────────────┐
-│  MCP Server         │
-│  VeteriLach.McpServer│
-│                     │
-│  - Inicialització   │
-│  - Tools List       │
-│  - Tools Call       │
-└──────────┬──────────┘
-           │ HTTP + X-Api-Key
-           ▼
-┌─────────────────────┐
-│  VeteriLach API     │
-│  (IIS + ASP.NET)    │
-│                     │
-│  - AnimalsController│
-│  - PropietarisCtrl  │
-│  - SalesController  │
-│  - MedicinesCtrl    │
-│  - MedicalHistory   │
-└──────────┬──────────┘
-           │ Entity Framework
-           ▼
-┌─────────────────────┐
-│  SQL Server         │
-│  CanMascotaBd       │
-└─────────────────────┘
+Després de modificar `mcp_config.json`:
+
+1. Tanca **completament** ChatGPT Desktop
+2. Assegura't que el servidor MCP està executant-se (veure Pas 3)
+3. Obre ChatGPT Desktop
+4. El servidor MCP hauria d'aparèixer disponible
+
+## Endpoints HTTP
+
+El servidor MCP exposa els següents endpoints:
+
+### GET /
+
+Informació bàsica del servidor:
+
+```bash
+curl http://localhost:5273/
 ```
 
-### Components
-
-1. **ChatGPT Desktop**: Aplicació client que invoca les tools MCP
-2. **MCP Server**: Servidor que implementa el protocol MCP i tradueix peticions a crides HTTP
-3. **VeteriLach API**: API REST que accedeix a la base de dades
-4. **SQL Server**: Base de dades amb les dades de VeteriLach
-
-### Protocol MCP
-
-El servidor utilitza **JSON-RPC 2.0** sobre **stdin/stdout**:
-
-- **stdin**: Rep peticions JSON-RPC de ChatGPT Desktop
-- **stdout**: Retorna respostes JSON-RPC
-- **stderr**: Escriu logs (no es llegeixen per ChatGPT)
-
-### Mètodes Suportats
-
-1. **initialize**: Handshake inicial, retorna capacitats del servidor
-2. **tools/list**: Llista totes les tools disponibles amb els seus esquemes
-3. **tools/call**: Executa una tool específica amb arguments
-
-## Estructura del Projecte
-
+Resposta:
+```json
+{
+  "name": "veterilach-server",
+  "version": "1.0.0",
+  "protocol": "MCP",
+  "transport": "HTTP",
+  "endpoints": {
+    "messages": "/messages (POST)",
+    "health": "/health (GET)"
+  }
+}
 ```
-mcp-server/
-├── Program.cs                  # Punt d'entrada, stdin/stdout handler
-├── appsettings.json           # Configuració
-├── Mcp/
-│   ├── McpModels.cs          # Models del protocol MCP
-│   └── McpServer.cs          # Implementació servidor MCP
-├── Models/
-│   └── ApiModels.cs          # Models de dades de l'API
-└── Services/
-    └── VeteriLachApiClient.cs # Client HTTP per l'API
+
+### GET /health
+
+Health check del servidor:
+
+```bash
+curl http://localhost:5273/health
+```
+
+Resposta:
+```json
+{
+  "status": "healthy",
+  "server": "veterilach-server",
+  "version": "1.0.0",
+  "timestamp": "2026-05-29T15:12:51.7884945Z"
+}
+```
+
+### POST /messages
+
+**Endpoint principal MCP** - Accepta peticions JSON-RPC 2.0:
+
+```bash
+curl -X POST http://localhost:5273/messages \
+  -H "Content-Type: application/json" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "chatgpt-desktop",
+        "version": "1.0.0"
+      }
+    }
+  }'
+```
+
+#### Mètodes disponibles:
+
+1. **initialize** - Inicialitza la sessió MCP
+2. **tools/list** - Llista totes les tools disponibles
+3. **tools/call** - Executa una tool específica
+
+## Tools Disponibles
+
+El servidor exposa **15 tools** agrupades en 5 categories:
+
+### 📊 Sales API (Vendes) - 5 tools
+
+| Tool | Descripció | Paràmetres principals |
+|------|------------|----------------------|
+| `get_sales` | Llista de vendes paginada | pageNumber, pageSize, startDate, endDate, customerId |
+| `get_sale_detail` | Detall d'una venda | saleId (GUID) |
+| `get_customer_sales` | Vendes d'un client | customerId (GUID) |
+| `get_debts` | Llistat de deutes | minimumDays, minimumAmount |
+| `get_payment_advances` | Llistat d'acomptes | customerId, startDate, endDate |
+
+### 👥 Propietaris API (Clients) - 2 tools
+
+| Tool | Descripció | Paràmetres principals |
+|------|------------|----------------------|
+| `get_propietaris` | Llista de propietaris | searchTerm, poblacio, codiPostal, nomes_actius |
+| `get_propietari_detail` | Detall d'un propietari | propietariId (GUID) |
+
+### 🐾 Animals API (Mascotes) - 2 tools
+
+| Tool | Descripció | Paràmetres principals |
+|------|------------|----------------------|
+| `get_animals` | Llista d'animals | searchTerm, idPropietari, idEspecie |
+| `get_animal_detail` | Detall d'un animal | animalId (GUID) |
+
+### 🏥 Medical History API (Historial Clínic) - 2 tools
+
+| Tool | Descripció | Paràmetres principals |
+|------|------------|----------------------|
+| `get_animal_visits` | Historial de visites | animalId (GUID), dataInici, dataFi |
+| `get_visit_detail` | Detall d'una visita | visitId (GUID) |
+
+### 💊 Medicines API (Medicaments) - 4 tools
+
+| Tool | Descripció | Paràmetres principals |
+|------|------------|----------------------|
+| `search_veterinary_medicines` | Cerca medicaments veterinaris | query, species |
+| `get_veterinary_medicine` | Detall medicament veterinari | cnCode |
+| `search_human_medicines` | Cerca medicaments humans | query |
+| `get_human_medicine` | Detall medicament humà | cnCode |
+
+### Exemples d'ús
+
+#### 1. Inicialitzar sessió
+
+```powershell
+$body = @{
+    jsonrpc = "2.0"
+    id = 1
+    method = "initialize"
+    params = @{
+        protocolVersion = "2024-11-05"
+        capabilities = @{}
+        clientInfo = @{
+            name = "test-client"
+            version = "1.0.0"
+        }
+    }
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body -ContentType "application/json"
+```
+
+#### 2. Llistar tools
+
+```powershell
+$body = @{
+    jsonrpc = "2.0"
+    id = 2
+    method = "tools/list"
+} | ConvertTo-Json
+
+Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body -ContentType "application/json"
+```
+
+#### 3. Executar una tool (exemple: get_sales)
+
+```powershell
+$body = @{
+    jsonrpc = "2.0"
+    id = 3
+    method = "tools/call"
+    params = @{
+        name = "get_sales"
+        arguments = @{
+            pageNumber = 1
+            pageSize = 10
+            onlyUnpaid = $false
+        }
+    }
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body -ContentType "application/json"
+```
+
+## Test Manual
+
+### 1. Verificar que el servidor MCP està executant-se
+
+```powershell
+# Health check
+Invoke-WebRequest -Uri "http://localhost:5273/health" -UseBasicParsing
+
+# Hauria de retornar 200 OK amb:
+# {"status":"healthy",...}
+```
+
+### 2. Verificar que l'API funciona
+
+```powershell
+# Test API directament
+$headers = @{ "X-Api-Key" = "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4" }
+Invoke-WebRequest -Uri "http://localhost:41229/api/health" -Headers $headers -UseBasicParsing
+```
+
+### 3. Test complet: Llistar vendes
+
+```powershell
+$body = @{
+    jsonrpc = "2.0"
+    id = 1
+    method = "tools/call"
+    params = @{
+        name = "get_sales"
+        arguments = @{
+            pageSize = 5
+        }
+    }
+} | ConvertTo-Json -Depth 5
+
+Invoke-RestMethod -Uri "http://localhost:5273/messages" `
+    -Method Post `
+    -Body $body `
+    -ContentType "application/json"
 ```
 
 ## Troubleshooting
 
-### Problemes amb l'API
+### ❌ Error: "No se puede conectar al servidor MCP"
 
-#### Error 503 Service Unavailable
+**Causa**: El servidor MCP no està executant-se.
 
-**Problema**: L'API no respon a http://localhost:41229
+**Solució**:
+```powershell
+cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0
+.\VeteriLach.McpServer.exe
 
-**Solucions**:
+# O verifica que el servei està en marxa:
+nssm status VeteriLachMcpServer
+```
 
-1. **Comprova que l'App Pool està en marxa**:
-   ```powershell
-   # Obre PowerShell com a Administrador
-   Import-Module WebAdministration
-   Get-WebAppPoolState -Name "VeteriLAchReadApiAppPool"
-   ```
+### ❌ Error: HTTP 500 al cridar una tool
 
-2. **Inicia l'App Pool si està aturat**:
-   ```powershell
-   Start-WebAppPool -Name "VeteriLAchReadApiAppPool"
-   ```
+**Causa**: L'API de VeteriLach no està funcionant o retorna errors.
 
-3. **Reinicia l'App Pool si està engegat**:
-   ```powershell
-   Restart-WebAppPool -Name "VeteriLAchReadApiAppPool"
-   ```
+**Solució**:
+```powershell
+# Verifica que l'API està en marxa
+Invoke-WebRequest -Uri "http://localhost:41229/api/health" -UseBasicParsing
 
-4. **Revisa els logs d'IIS**:
-   - Ubica: `C:\inetpub\wwwroot\VeteriLachApi\logs`
-   - Cerca errors recents
+# Si retorna 503, reinicia l'App Pool d'IIS:
+Restart-WebAppPool -Name "VeteriLAchReadApiAppPool"
+```
 
-#### Error 401 Unauthorized
+### ❌ Error: "API Key no válida" (401)
 
-**Problema**: L'API retorna 401 en cridar endpoints
+**Causa**: L'API Key configurada no coincideix.
 
-**Solucions**:
+**Solució**:
+1. Verifica l'API Key a `C:\inetpub\wwwroot\VeteriLachApi\appsettings.json`
+2. Verifica l'API Key a `mcp-server\appsettings.json`
+3. Han de ser idèntiques
 
-1. **Verifica que l'API Key és correcta**:
-   - Comprova `mcp-server/appsettings.json` → `VeteriLachApi.ApiKey`
-   - Comprova `C:\inetpub\wwwroot\VeteriLachApi\appsettings.json` → `ApiKeys.MCPServer`
-   - Han de coincidir exactament
+### ❌ ChatGPT Desktop no detecta el servidor MCP
 
-2. **Test manual amb Swagger**:
-   - Accedeix a http://localhost:41229/swagger
-   - Fes clic a "Authorize"
-   - Introdueix l'API Key
-   - Prova un endpoint
+**Causes possibles**:
 
-#### Error de connexió a la base de dades
-
-**Problema**: L'API no pot connectar amb SQL Server
-
-**Solucions**:
-
-1. **Verifica el ConnectionString**:
+1. **Format incorrecte del mcp_config.json**:
    ```json
-   // C:\inetpub\wwwroot\VeteriLachApi\appsettings.json
-   {
-     "ConnectionStrings": {
-       "VeteriLachConnection": "Server=localhost;Database=CanMascotaBd;Trusted_Connection=True;..."
-     }
-   }
-   ```
-
-2. **Comprova que SQL Server està en marxa**:
-   ```powershell
-   # Obre Services.msc i cerca "SQL Server"
-   Get-Service | Where-Object {$_.Name -like "*SQL*"}
-   ```
-
-3. **Verifica que l'App Pool té permisos**:
-   - L'identitat de l'App Pool (ApplicationPoolIdentity) necessita accés a la base de dades
-   - Afegeix permisos a SQL Server per a `IIS APPPOOL\VeteriLAchReadApiAppPool`
-
-### Problemes amb el Servidor MCP
-
-#### El servidor no es connecta a l'API
-
-**Problema**: El servidor MCP no pot cridar l'API
-
-**Solucions**:
-
-1. **Verifica que l'API funciona**:
-   ```powershell
-   Invoke-WebRequest -Uri "http://localhost:41229/api/health" -UseBasicParsing
-   ```
-
-2. **Comprova la configuració del servidor MCP**:
-   ```json
-   // mcp-server/appsettings.json
-   {
-     "VeteriLachApi": {
-       "BaseUrl": "http://localhost:41229",  // Ha de coincidir amb el port d'IIS
-       "ApiKey": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4"
-     }
-   }
-   ```
-
-3. **Prova el servidor manualment**:
-   ```powershell
-   cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0
-   
-   # Hauria de retornar dades de vendes
-   echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_sales","arguments":{"pageSize":1}}}' | .\VeteriLach.McpServer.exe
-   ```
-
-#### ChatGPT Desktop no detecta el servidor
-
-**Problema**: El servidor MCP no apareix a ChatGPT Desktop
-
-**Solucions**:
-
-1. **Verifica el path al fitxer de configuració**:
-   ```powershell
-   # Mostra el contingut
-   Get-Content "$env:APPDATA\Claude\claude_desktop_config.json"
-   ```
-
-2. **Comprova que el path al .exe és correcte**:
-   ```powershell
-   # Verifica que el fitxer existeix
-   Test-Path "C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0\VeteriLach.McpServer.exe"
-   ```
-
-3. **Valida el JSON de configuració**:
-   - Usa un validador online (https://jsonlint.com/)
-   - Assegura't que les barres invertides són dobles (`\\`)
-   - No hi ha comes extra al final
-
-4. **Reinicia ChatGPT Desktop completament**:
-   - Tanca l'aplicació (també des de la safata del sistema)
-   - Obre el Task Manager i assegura't que no hi ha processos de Claude
-   - Torna a obrir l'aplicació
-
-5. **Revisa els logs de ChatGPT Desktop**:
-   - Ubica: `%APPDATA%\Claude\logs`
-   - Cerca errors relacionats amb MCP
-
-#### Error "dotnet not found" o problemes de compilació
-
-**Problema**: No es pot compilar el servidor MCP
-
-**Solucions**:
-
-1. **Verifica que .NET SDK està instal·lat**:
-   ```powershell
-   dotnet --version
-   # Ha de mostrar versió 10.0 o superior
-   ```
-
-2. **Instal·la .NET SDK 10.0**:
-   - Descarrega de: https://dotnet.microsoft.com/download/dotnet/10.0
-   - Instal·la el SDK (no només el Runtime)
-
-3. **Neteja i recompila**:
-   ```powershell
-   cd mcp-server
-   dotnet clean
-   dotnet restore
-   dotnet build -c Release
-   ```
-
-### Problemes de Rendiment
-
-#### El servidor MCP respon lentament
-
-**Solucions**:
-
-1. **Augmenta el timeout**:
-   ```json
-   // mcp-server/appsettings.json
-   {
-     "VeteriLachApi": {
-       "TimeoutSeconds": 60  // Augmenta si cal
-     }
-   }
-   ```
-
-2. **Comprova l'estat de SQL Server**:
-   - Queries lentes poden afectar el rendiment
-   - Revisa els índexs de la base de dades
-
-3. **Reinicia l'App Pool d'IIS**:
-   ```powershell
-   Restart-WebAppPool -Name "VeteriLAchReadApiAppPool"
-   ```
-
-### Obtenir Ajuda Addicional
-
-Si cap d'aquestes solucions funciona:
-
-1. **Executa el servidor manualment i captura els logs**:
-   ```powershell
-   cd mcp-server\bin\Release\net10.0
-   .\VeteriLach.McpServer.exe 2> errors.log
-   # Escriu una petició JSON-RPC i revisa errors.log
-   ```
-
-2. **Comprova els logs d'IIS**:
-   - Event Viewer → Windows Logs → Application
-   - Cerca errors relacionats amb IIS o ASP.NET Core
-
-3. **Consulta la documentació oficial**:
-   - MCP Protocol: https://modelcontextprotocol.io/
-   - ASP.NET Core: https://docs.microsoft.com/aspnet/core/
-   - IIS Hosting: https://docs.microsoft.com/aspnet/core/host-and-deploy/iis/
-
-## Seguretat
-
-### Protecció de l'API Key
-
-**IMPORTANT**: L'API Key és una credencial sensible. Segueix aquestes recomanacions:
-
-1. **NO comparteixis l'API Key** en repositoris públics o xarxes socials
-2. **NO la incloguis** en fitxers de configuració que es publiquin a Git
-3. **Utilitza API Keys diferents** per a cada entorn (desenvolupament, producció)
-4. **Rota les claus periòdicament** per motius de seguretat
-
-### Configuració Segura
-
-#### appsettings.json (API)
-
-El fitxer `C:\inetpub\wwwroot\VeteriLachApi\appsettings.json` conté informació sensible:
-- ConnectionString amb credencials de base de dades
-- API Keys
-
-**Mesures de seguretat**:
-- Assegura't que només els administradors tenen accés al directori
-- Configura permisos NTFS adequats:
-  ```powershell
-  # Només Administrators i SYSTEM poden accedir
-  icacls "C:\inetpub\wwwroot\VeteriLachApi\appsettings.json" /inheritance:r /grant:r "Administrators:(F)" "SYSTEM:(F)"
-  ```
-
-#### appsettings.json (MCP Server)
-
-El fitxer del servidor MCP també conté l'API Key.
-
-**Opcions més segures**:
-
-1. **Variables d'entorn**:
-   ```json
-   // claude_desktop_config.json
+   // ❌ INCORRECTE (stdio format)
    {
      "mcpServers": {
        "veterilach": {
-         "command": "C:\\path\\to\\VeteriLach.McpServer.exe",
-         "env": {
-           "VETERILACH_API_KEY": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4"
-         }
+         "command": "...",  // ❌ NO per HTTP
+         "args": []
+       }
+     }
+   }
+
+   // ✅ CORRECTE (HTTP format)
+   {
+     "mcpServers": {
+       "veterilach": {
+         "url": "http://localhost:5273/messages",
+         "transport": "http"
        }
      }
    }
    ```
-   
-   Després modifica `Program.cs` per llegir de variables d'entorn.
 
-2. **Azure Key Vault** o **Windows Credential Manager** per a entorns de producció
+2. **Servidor no executant-se**: Verifica amb `curl http://localhost:5273/health`
 
-### Exposició de l'API
+3. **ChatGPT Desktop no reiniciat**: Tanca completament i reobre l'aplicació
 
-Si exposes l'API a Internet:
+### ❌ Error de connexió a la base de dades
 
-1. **Utilitza HTTPS** obligatòriament
-2. **Configura CORS** correctament
-3. **Implementa rate limiting** per prevenir abusos
-4. **Monitoritza els logs** per detectar accessos sospitosos
-5. **Utilitza un firewall** (Azure Application Gateway, Cloudflare, etc.)
+**Causa**: SQL Server no està en marxa o ConnectionString incorrecte.
 
-### Recomanacions Generals
+**Solució**:
+```powershell
+# Verifica SQL Server
+Get-Service MSSQLSERVER
 
-- ✅ Mantén .NET SDK i runtime actualitzats
-- ✅ Actualitza regularment els paquets NuGet
-- ✅ Revisa els logs d'IIS periòdicament
-- ✅ Fes backups regulars de la base de dades
-- ✅ Implementa autenticació addicional si és necessari (OAuth2, JWT, etc.)
+# Si està aturat, inicia'l:
+Start-Service MSSQLSERVER
+
+# Verifica ConnectionString a:
+# C:\inetpub\wwwroot\VeteriLachApi\appsettings.json
+```
+
+### ❌ Port 5273 ja està en ús
+
+**Causa**: Un altre procés està usant el port 5273.
+
+**Solució**:
+
+**Opció 1**: Canvia el port a `appsettings.json`:
+```json
+{
+  "Urls": "http://localhost:5280"
+}
+```
+
+I actualitza `mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "veterilach": {
+      "url": "http://localhost:5280/messages",
+      "transport": "http"
+    }
+  }
+}
+```
+
+**Opció 2**: Identifica i atura el procés:
+```powershell
+# Troba el procés que usa el port
+netstat -ano | findstr :5273
+
+# Atura'l (canvia PID pel número que surt)
+Stop-Process -Id <PID> -Force
+```
+
+## Seguretat
+
+### ⚠️ IMPORTANT - Només per ús local
+
+Aquest servidor MCP està dissenyat per **ús local** (localhost) solament:
+
+- ✅ Exposició a `http://localhost:5273` (només accessible des de la mateixa màquina)
+- ❌ **NO exposar públicament a Internet**
+- ❌ **NO usar en producció sense autenticació addicional**
+
+### API Key
+
+L'API Key està hardcodejada per simplicitat. En un entorn de producció:
+
+1. Utilitza **variables d'entorn** per l'API Key
+2. Implementa **rotació periòdica** de claus
+3. Usa **HTTPS** (no HTTP)
+4. Implementa **autenticació adicional** (OAuth2, JWT, etc.)
+
+## Arquitectura Tècnica
+
+### Components
+
+```
+┌─────────────────────────────────────┐
+│   ChatGPT Desktop (Client)          │
+└──────────────┬──────────────────────┘
+               │ HTTP POST /messages
+               │ (JSON-RPC 2.0)
+               ▼
+┌─────────────────────────────────────┐
+│   MCP Server (ASP.NET Core)         │
+│   - Port: 5273                      │
+│   - Endpoints: /, /health, /messages│
+│   - Protocol: MCP v2024-11-05       │
+└──────────────┬──────────────────────┘
+               │ HTTP REST calls
+               │ (X-Api-Key header)
+               ▼
+┌─────────────────────────────────────┐
+│   VeteriLach Read API               │
+│   - Port: 41229                     │
+│   - IIS + ASP.NET Core 8.0          │
+└──────────────┬──────────────────────┘
+               │ SQL Server queries
+               ▼
+┌─────────────────────────────────────┐
+│   SQL Server (CanMascotaBd)         │
+└─────────────────────────────────────┘
+```
+
+### Flux d'una petició
+
+1. **ChatGPT Desktop** envia una petició JSON-RPC a `POST http://localhost:5273/messages`
+2. **MCP Server** rep la petició, deserialitza i identifica el mètode
+3. Si és `tools/call`, extreu el nom de la tool i arguments
+4. **MCP Server** crida l'API de VeteriLach corresponent amb l'API Key
+5. **VeteriLach API** consulta la base de dades SQL Server
+6. **VeteriLach API** retorna JSON a MCP Server
+7. **MCP Server** serialitza la resposta en format MCP i la retorna
+8. **ChatGPT Desktop** processa la resposta i la mostra a l'usuari
 
 ## Desenvolupament
 
-### Executar en Mode Desenvolupament
-
-Per desenvolupar i depurar el servidor MCP:
-
-```powershell
-cd mcp-server
-dotnet run
-```
-
-Després pots escriure peticions JSON-RPC directament:
-
-```
-{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}
-```
-
-### Afegir Noves Tools
-
-Per afegir una nova tool:
-
-1. **Afegeix el DTO a `Models/ApiModels.cs`**
-2. **Afegeix el mètode al client HTTP a `Services/VeteriLachApiClient.cs`**
-3. **Registra la tool a `Mcp/McpServer.cs` en `HandleToolsList()`**
-4. **Afegeix el case al switch de `HandleToolsCallAsync()`**
-5. **Implementa el mètode `Execute*Async()`**
-6. **Actualitza el README.md amb la documentació**
-7. **Recompila i prova**
-
-### Estructura del Codi
+### Estructura del projecte
 
 ```
 mcp-server/
-├── Program.cs                      # Punt d'entrada
-│   └── Main loop (stdin → stdout)
-├── appsettings.json               # Configuració
+├── Program.cs                  # Entrada del servidor web ASP.NET Core
+├── appsettings.json           # Configuració del servidor
 ├── Mcp/
-│   ├── McpModels.cs               # Models MCP (JsonRpc, Tool, etc.)
-│   └── McpServer.cs               # Lògica del servidor
-│       ├── HandleInitialize()     # Handshake inicial
-│       ├── HandleToolsList()      # Llista de tools
-│       └── HandleToolsCallAsync() # Execució de tools
+│   ├── McpModels.cs           # Models del protocol MCP (JSON-RPC)
+│   └── McpServer.cs           # Lògica del servidor MCP (15 tools)
 ├── Models/
-│   └── ApiModels.cs               # DTOs de l'API
-└── Services/
-    └── VeteriLachApiClient.cs     # HTTP client per l'API
-        └── Mètodes Get*Async()    # Crides HTTP
+│   └── ApiModels.cs           # DTOs de l'API de VeteriLach
+├── Services/
+│   └── VeteriLachApiClient.cs # Client HTTP per l'API
+└── VeteriLach.McpServer.csproj
 ```
 
-### Tests Unitaris (TODO)
+### Afegir noves tools
 
-Encara no implementat. Seria ideal afegir:
-- Tests per a cada tool
-- Mocks de l'API
-- Tests d'integració
+Per afegir una nova tool al servidor:
+
+1. **Afegir el mètode Execute a `McpServer.cs`**:
+   ```csharp
+   private async Task<ToolResponse> ExecuteMyNewToolAsync(Dictionary<string, object> arguments)
+   {
+       var param1 = GetStringArg(arguments, "param1", required: true);
+       var result = await _apiClient.GetMyNewDataAsync(param1);
+       return new ToolResponse
+       {
+           Content = new List<ContentItem>
+           {
+               new() { Type = "text", Text = JsonSerializer.Serialize(result) }
+           }
+       };
+   }
+   ```
+
+2. **Afegir la definició de la tool a `HandleToolsList()`**:
+   ```csharp
+   new Tool
+   {
+       Name = "my_new_tool",
+       Description = "Descripció de la nova tool",
+       InputSchema = new InputSchema
+       {
+           Type = "object",
+           Properties = new Dictionary<string, PropertySchema>
+           {
+               ["param1"] = new() { Type = "string", Description = "Paràmetre 1" }
+           },
+           Required = new List<string> { "param1" }
+       }
+   }
+   ```
+
+3. **Afegir el case a `HandleToolsCallAsync()`**:
+   ```csharp
+   "my_new_tool" => await ExecuteMyNewToolAsync(arguments),
+   ```
+
+4. **Afegir el mètode a `VeteriLachApiClient.cs`**:
+   ```csharp
+   public async Task<MyNewDto> GetMyNewDataAsync(string param1)
+   {
+       var response = await _httpClient.GetAsync($"/api/mynew/{param1}");
+       response.EnsureSuccessStatusCode();
+       return await response.Content.ReadFromJsonAsync<MyNewDto>();
+   }
+   ```
+
+### Compilar i executar en mode desenvolupament
+
+```powershell
+# Compilar
+dotnet build
+
+# Executar en mode desenvolupament (amb hot reload)
+dotnet run
+
+# Executar en mode Release
+dotnet build -c Release
+cd bin\Release\net10.0
+.\VeteriLach.McpServer.exe
+```
+
+### Logs
+
+El servidor registra tota l'activitat a la consola:
+
+```
+info: VeteriLach.McpServer[0]
+      VeteriLach MCP Server v1.0.0 starting...
+info: VeteriLach.McpServer[0]
+      API URL: http://localhost:41229
+info: VeteriLach.McpServer[0]
+      Server ready. Listening for HTTP requests...
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:5273
+info: VeteriLach.McpServer[0]
+      Processing method: tools/call
+info: VeteriLach.McpServer[0]
+      Response sent for method: tools/call
+```
+
+## Changelog
+
+### v1.0.0 (2026-05-29) - HTTP Transport
+
+- 🚀 **BREAKING CHANGE**: Migració de transport stdio a HTTP
+- ✅ Servidor web ASP.NET Core amb endpoints RESTful
+- ✅ 15 tools implementades:
+  - 5 Sales API (get_sales, get_sale_detail, get_customer_sales, get_debts, get_payment_advances)
+  - 2 Propietaris API (get_propietaris, get_propietari_detail)
+  - 2 Animals API (get_animals, get_animal_detail)
+  - 2 Medical History API (get_animal_visits, get_visit_detail)
+  - 4 Medicines API (search_veterinary_medicines, get_veterinary_medicine, search_human_medicines, get_human_medicine)
+- ✅ Endpoints: `GET /`, `GET /health`, `POST /messages`
+- ✅ Compatible amb ChatGPT Desktop
+- ✅ Documentació completa d'instal·lació i configuració
+
+### v0.1.0 (stdio - deprecated)
+
+- Implementació inicial amb transport stdio
+- **NOTA**: Aquesta versió no és compatible amb ChatGPT Desktop
 
 ## Llicència
 
-MIT
+Aquest projecte és propietat de **DaSeTeo** i està destinat a ús intern exclusivament.
+
+## Contacte
+
+Per problemes o preguntes, contacta amb l'equip de desenvolupament de DaSeTeo.
