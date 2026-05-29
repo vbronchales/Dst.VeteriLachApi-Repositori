@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "veterilach": {
+      "url": "http://localhost:5273/messages",
+      "transport": "http"
+    }
+  }
+}
