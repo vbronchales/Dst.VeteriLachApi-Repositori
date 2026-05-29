@@ -360,6 +360,226 @@ GET /api/visits/{idVisita}
 
 ---
 
+### Vendes i Facturació
+
+#### Llista de vendes amb filtres
+```powershell
+# Llista bàsica (pàgina 1, 50 items)
+GET /api/sales
+
+# Amb paginació personalitzada
+GET /api/sales?pageNumber=2&pageSize=10
+
+# Filtrar per període de dates
+GET /api/sales?startDate=2026-01-01&endDate=2026-12-31
+
+# Filtrar per client
+GET /api/sales?customerId={guid}
+
+# Filtrar per venedor
+GET /api/sales?sellerId={guid}
+
+# Filtrar per animal
+GET /api/sales?animalId={guid}
+
+# Només vendes pendents de pagament
+GET /api/sales?onlyPending=true
+
+# Només vendes pagades
+GET /api/sales?onlyPaid=true
+
+# Combinació de filtres
+GET /api/sales?startDate=2026-05-01&customerId={guid}&onlyPending=true
+```
+
+**Resposta paginada:**
+```json
+[
+  {
+    "saleId": "dfde8545-c88c-4475-80ee-ef8ade462711",
+    "customerId": "e4cb0b07-5d54-47d1-a853-ec98ccd86536",
+    "customerName": "CRISTINA",
+    "sellerId": "e60b6d88-89ce-4e07-a1d3-1475db930250",
+    "sellerName": "LAURA",
+    "saleDate": "2026-12-22T15:36:34",
+    "totalAmount": 11.63,
+    "totalPaid": 0.00,
+    "totalChange": 0.00,
+    "pendingAmount": 11.63,
+    "isFullyPaid": false,
+    "paymentMethodId": "b73f84db-ef4b-4e22-b80b-2404a0abc41f",
+    "paymentMethodName": "01 EFECTIU",
+    "isPaymentCash": true,
+    "animalId": "48b9655e-086b-4e15-b0c1-48f2c491035c",
+    "animalName": "PALOMAS",
+    "summary": "1xINYECTABLE EXOTICO ( <1 KG ) PROPIETARIO, 1xVERSELE PRESTIGE TORTOLAS 1kg",
+    "itemCount": 2
+  }
+]
+```
+
+#### Detall d'una venda amb articles
+```powershell
+GET /api/sales/{id}
+```
+
+**Resposta amb dades completes:**
+```json
+{
+  "saleId": "dfde8545-c88c-4475-80ee-ef8ade462711",
+  "customerId": "e4cb0b07-5d54-47d1-a853-ec98ccd86536",
+  "customerName": "CRISTINA",
+  "customerNif": "37314505L",
+  "customerPhone": "617300906",
+  "customerEmail": "",
+  "sellerId": "e60b6d88-89ce-4e07-a1d3-1475db930250",
+  "sellerName": "LAURA",
+  "saleDate": "2026-12-22T15:36:34",
+  "totalAmount": 11.63,
+  "totalPaid": 0.00,
+  "totalChange": 0.00,
+  "pendingAmount": 11.63,
+  "isFullyPaid": false,
+  "paymentMethodId": "b73f84db-ef4b-4e22-b80b-2404a0abc41f",
+  "paymentMethodName": "01 EFECTIU",
+  "isPaymentCash": true,
+  "bankAccount": null,
+  "animalId": "48b9655e-086b-4e15-b0c1-48f2c491035c",
+  "animalName": "PALOMAS",
+  "animalSpecies": "OCELL",
+  "summary": "1xINYECTABLE EXOTICO ( <1 KG ) PROPIETARIO, 1xVERSELE PRESTIGE TORTOLAS 1kg",
+  "items": [
+    {
+      "saleItemId": "a540ef68-78e5-4e01-bc06-993e796a3c1d",
+      "articleId": "ab9837c5-6d7c-4ae4-a10d-4b77f2ed5774",
+      "articleName": "INYECTABLE EXOTICO ( <1 KG ) PROPIETARIO",
+      "quantity": 1.00,
+      "unitPrice": 5.066115,
+      "vatAmount": 1.063884,
+      "vatRate": 21.00,
+      "vatName": "IVA ESTANDAR",
+      "discount": 0.000000,
+      "discountPercentage": 0,
+      "subtotal": 5.06611500,
+      "total": 6.12999900,
+      "netCost": 0.000000,
+      "margin": 5.066115,
+      "order": 0
+    },
+    {
+      "saleItemId": "fb72650a-52fb-4ad2-998c-6b152109753e",
+      "articleId": "61743689-c862-44fd-8526-15668ba17b35",
+      "articleName": "VERSELE PRESTIGE TORTOLAS 1kg",
+      "quantity": 1.00,
+      "unitPrice": 5.000000,
+      "vatAmount": 0.500000,
+      "vatRate": 10.00,
+      "vatName": "IVA REDUCIDO",
+      "discount": 0.000000,
+      "discountPercentage": 0,
+      "subtotal": 5.00000000,
+      "total": 5.50000000,
+      "netCost": 1.360000,
+      "margin": 3.640000,
+      "marginPercentage": 267.65,
+      "order": 1
+    }
+  ]
+}
+```
+
+#### Vendes d'un client específic
+```powershell
+# Totes les vendes d'un client
+GET /api/sales/customer/{customerId}
+
+# Amb filtres de dates
+GET /api/sales/customer/{customerId}?startDate=2026-01-01&endDate=2026-12-31
+
+# Amb paginació
+GET /api/sales/customer/{customerId}?pageNumber=1&pageSize=20
+```
+
+#### Deutes pendents
+```powershell
+# Tots els deutes
+GET /api/sales/debts
+
+# Filtrar per client específic
+GET /api/sales/debts?customerId={guid}
+
+# Mínim de dies pendents
+GET /api/sales/debts?minimumDays=30
+
+# Import mínim pendent
+GET /api/sales/debts?minimumAmount=50.00
+
+# Combinació de filtres
+GET /api/sales/debts?minimumDays=60&minimumAmount=100
+```
+
+**Resposta de deutes:**
+```json
+[
+  {
+    "saleId": "a34a28bd-9a85-47c6-a1c5-0927399229eb",
+    "customerId": "f47dec63-28e8-4296-bed5-709bb6d6f9a8",
+    "customerName": "Mª CRISTINA",
+    "customerNif": "37370553S",
+    "customerPhone": "934210729",
+    "customerEmail": "bcnmariacristina@hotmail.com",
+    "saleDate": "2001-10-01T14:15:38",
+    "daysPending": 9005,
+    "totalAmount": 3.00,
+    "totalPaid": 0.00,
+    "pendingAmount": 3.00,
+    "animalId": "3cd74d48-71de-4aab-9bef-6d0bca7080e6",
+    "animalName": "ALEA",
+    "summary": "1xCONTROL"
+  }
+]
+```
+
+#### Pagaments a compte (acomptes)
+```powershell
+# Tots els pagaments a compte
+GET /api/sales/advances
+
+# Filtrar per període de dates
+GET /api/sales/advances?startDate=2026-01-01&endDate=2026-12-31
+
+# Filtrar per client
+GET /api/sales/advances?customerId={guid}
+
+# Filtrar per animal
+GET /api/sales/advances?animalId={guid}
+
+# Amb paginació
+GET /api/sales/advances?pageNumber=1&pageSize=10
+```
+
+**Resposta de pagaments a compte:**
+```json
+[
+  {
+    "paymentAdvanceId": "8dfe8cca-b7f2-4625-a54d-81713f375f21",
+    "customerId": "737dfaf6-2ed8-48b5-8dde-21753ef6a9ca",
+    "customerName": "YOLANDA",
+    "sellerId": "93ae6d80-a18b-49a3-ba51-3eb57803fadb",
+    "sellerName": "GERALDINE",
+    "paymentDate": "2026-05-06T20:50:02",
+    "amount": 52.00,
+    "paymentMethodId": "5d6b7243-9faf-400a-b52e-fbb7e877ec48",
+    "paymentMethodName": "04 TPV LA CAIXA",
+    "animalId": "2068e887-3cd5-419f-b9a5-1be8b14419db",
+    "animalName": "MUNAY",
+    "reference": "MUNAY"
+  }
+]
+```
+
+---
+
 ## 📁 Estructura del Projecte
 
 ```
