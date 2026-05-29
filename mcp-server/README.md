@@ -5,13 +5,15 @@ Servidor MCP (Model Context Protocol) per accedir a VeteriLach Read API des de l
 ## Característiques
 
 - ✅ Protocol MCP estàndard (JSON-RPC 2.0 sobre stdio)
-- ✅ 5 tools exposades per Sales API
+- ✅ **15 tools exposades** per accedir a tota la funcionalitat de l'API
 - ✅ Configuració mínima (URL API + API Key)
 - ✅ Compatible amb ChatGPT Desktop
 
 ## Tools Disponibles
 
-### 1. `get_sales`
+### Sales API (Vendes) - 5 tools
+
+#### 1. `get_sales`
 Obté una llista paginada de vendes amb filtres opcionals.
 
 **Paràmetres:**
@@ -24,20 +26,20 @@ Obté una llista paginada de vendes amb filtres opcionals.
 - `animalId` (opcional): ID animal (GUID)
 - `onlyUnpaid` (opcional): Només vendes impagades
 
-### 2. `get_sale_detail`
+#### 2. `get_sale_detail`
 Obté informació detallada d'una venda específica amb tots els articles.
 
 **Paràmetres:**
 - `saleId` (requerit): ID de la venda (GUID)
 
-### 3. `get_customer_sales`
+#### 3. `get_customer_sales`
 Obté totes les vendes d'un client específic.
 
 **Paràmetres:**
 - `customerId` (requerit): ID client (GUID)
 - `pageNumber`, `pageSize`, `startDate`, `endDate` (opcionals)
 
-### 4. `get_debts`
+#### 4. `get_debts`
 Obté la llista de deutes (vendes impagades o parcialment pagades).
 
 **Paràmetres:**
@@ -46,13 +48,92 @@ Obté la llista de deutes (vendes impagades o parcialment pagades).
 - `minimumDays` (opcional): Dies mínims pendents
 - `minimumAmount` (opcional): Import mínim pendent
 
-### 5. `get_payment_advances`
+#### 5. `get_payment_advances`
 Obté la llista d'acomptes de clients.
 
 **Paràmetres:**
 - `pageNumber`, `pageSize` (opcionals)
 - `customerId` (opcional): Filtrar per client
 - `startDate`, `endDate` (opcionals)
+
+### Propietaris API (Clients) - 2 tools
+
+#### 6. `get_propietaris`
+Obté una llista paginada de propietaris/clients amb filtres opcionals.
+
+**Paràmetres:**
+- `pageNumber`, `pageSize` (opcionals)
+- `searchTerm` (opcional): Cerca per nom, email o telèfon
+- `poblacio` (opcional): Filtrar per població
+- `codiPostal` (opcional): Filtrar per codi postal
+- `nomes_actius` (opcional): Només clients actius
+
+#### 7. `get_propietari_detail`
+Obté informació detallada d'un propietari incloent animals i telèfons.
+
+**Paràmetres:**
+- `propietariId` (requerit): ID del propietari (GUID)
+
+### Animals API (Mascotes) - 2 tools
+
+#### 8. `get_animals`
+Obté una llista paginada d'animals/mascotes amb filtres opcionals.
+
+**Paràmetres:**
+- `pageNumber`, `pageSize` (opcionals)
+- `searchTerm` (opcional): Cerca per nom o xip
+- `idPropietari` (opcional): Filtrar per propietari
+- `idEspecie` (opcional): Filtrar per espècie
+
+#### 9. `get_animal_detail`
+Obté informació detallada d'un animal incloent dades del propietari.
+
+**Paràmetres:**
+- `animalId` (requerit): ID de l'animal (GUID)
+
+### Medical History API (Historial Clínic) - 2 tools
+
+#### 10. `get_animal_visits`
+Obté l'historial de visites mèdiques d'un animal.
+
+**Paràmetres:**
+- `animalId` (requerit): ID de l'animal (GUID)
+- `pageNumber`, `pageSize` (opcionals)
+- `dataInici` (opcional): Data inici (YYYY-MM-DD)
+- `dataFi` (opcional): Data fi (YYYY-MM-DD)
+
+#### 11. `get_visit_detail`
+Obté detalls complets d'una visita veterinària incloent notes clíniques, proves i vacunes.
+
+**Paràmetres:**
+- `visitId` (requerit): ID de la visita (GUID)
+
+### Medicines API (Medicaments) - 4 tools
+
+#### 12. `search_veterinary_medicines`
+Cerca medicaments veterinaris a la base de dades CimaVet.
+
+**Paràmetres:**
+- `query` (requerit): Text de cerca (nom, principi actiu, codi)
+- `species` (opcional): Espècie animal
+
+#### 13. `get_veterinary_medicine`
+Obté informació detallada d'un medicament veterinari per codi nacional.
+
+**Paràmetres:**
+- `cnCode` (requerit): Codi Nacional (CN)
+
+#### 14. `search_human_medicines`
+Cerca medicaments humans a la base de dades CIMA.
+
+**Paràmetres:**
+- `query` (requerit): Text de cerca (nom, principi actiu, codi)
+
+#### 15. `get_human_medicine`
+Obté informació detallada d'un medicament humà per codi nacional.
+
+**Paràmetres:**
+- `cnCode` (requerit): Codi Nacional (CN)
 
 ## Configuració
 

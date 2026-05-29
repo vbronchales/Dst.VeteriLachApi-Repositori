@@ -115,4 +115,154 @@ public class VeteriLachApiClient
         var response = await _httpClient.GetFromJsonAsync<PaginatedResponse<PaymentAdvanceDto>>($"/api/sales/advances{query}", _jsonOptions);
         return response ?? new PaginatedResponse<PaymentAdvanceDto>();
     }
+
+    // ===== Propietaris (Clients) =====
+
+    public async Task<PaginatedResponse<PropietariListDto>> GetPropietarisAsync(
+        int? pageNumber = null,
+        int? pageSize = null,
+        string? searchTerm = null,
+        string? poblacio = null,
+        string? codiPostal = null,
+        bool? nomes_actius = null)
+    {
+        var queryParams = new List<string>();
+        if (pageNumber.HasValue) queryParams.Add($"pageNumber={pageNumber}");
+        if (pageSize.HasValue) queryParams.Add($"pageSize={pageSize}");
+        if (!string.IsNullOrEmpty(searchTerm)) queryParams.Add($"searchTerm={searchTerm}");
+        if (!string.IsNullOrEmpty(poblacio)) queryParams.Add($"poblacio={poblacio}");
+        if (!string.IsNullOrEmpty(codiPostal)) queryParams.Add($"codiPostal={codiPostal}");
+        if (nomes_actius.HasValue) queryParams.Add($"nomes_actius={nomes_actius.Value.ToString().ToLower()}");
+
+        var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+        var response = await _httpClient.GetFromJsonAsync<PaginatedResponse<PropietariListDto>>($"/api/propietaris{query}", _jsonOptions);
+        return response ?? new PaginatedResponse<PropietariListDto>();
+    }
+
+    public async Task<PropietariDetailDto?> GetPropietariByIdAsync(string id)
+    {
+        return await _httpClient.GetFromJsonAsync<PropietariDetailDto>($"/api/propietaris/{id}", _jsonOptions);
+    }
+
+    // ===== Animals (Mascotes) =====
+
+    public async Task<PaginatedResponse<AnimalListDto>> GetAnimalsAsync(
+        int? pageNumber = null,
+        int? pageSize = null,
+        string? searchTerm = null,
+        string? idPropietari = null,
+        string? idEspecie = null)
+    {
+        var queryParams = new List<string>();
+        if (pageNumber.HasValue) queryParams.Add($"pageNumber={pageNumber}");
+        if (pageSize.HasValue) queryParams.Add($"pageSize={pageSize}");
+        if (!string.IsNullOrEmpty(searchTerm)) queryParams.Add($"searchTerm={searchTerm}");
+        if (!string.IsNullOrEmpty(idPropietari)) queryParams.Add($"idPropietari={idPropietari}");
+        if (!string.IsNullOrEmpty(idEspecie)) queryParams.Add($"idEspecie={idEspecie}");
+
+        var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+        var response = await _httpClient.GetFromJsonAsync<PaginatedResponse<AnimalListDto>>($"/api/animals{query}", _jsonOptions);
+        return response ?? new PaginatedResponse<AnimalListDto>();
+    }
+
+    public async Task<AnimalDetailDto?> GetAnimalByIdAsync(string id)
+    {
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<Dictionary<string, object>>($"/api/animals/{id}", _jsonOptions);
+            if (response != null && response.ContainsKey("data"))
+            {
+                var dataJson = JsonSerializer.Serialize(response["data"]);
+                return JsonSerializer.Deserialize<AnimalDetailDto>(dataJson, _jsonOptions);
+            }
+            return null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    // ===== Medical History (Visites) =====
+
+    public async Task<PaginatedResponse<VisitaResumatDto>> GetAnimalVisitsAsync(
+        string idAnimal,
+        int? pageNumber = null,
+        int? pageSize = null,
+        string? dataInici = null,
+        string? dataFi = null)
+    {
+        var queryParams = new List<string>();
+        if (pageNumber.HasValue) queryParams.Add($"pageNumber={pageNumber}");
+        if (pageSize.HasValue) queryParams.Add($"pageSize={pageSize}");
+        if (!string.IsNullOrEmpty(dataInici)) queryParams.Add($"dataInici={dataInici}");
+        if (!string.IsNullOrEmpty(dataFi)) queryParams.Add($"dataFi={dataFi}");
+
+        var query = queryParams.Count > 0 ? "?" + string.Join("&", queryParams) : "";
+        
+        try
+        {
+            var response = await _httpClient.GetFromJsonAsync<Dictionary<string, object>>($"/api/animals/{idAnimal}/visits{query}", _jsonOptions);
+            if (response != null && response.ContainsKey("data"))
+            {
+                var dataJson = JsonSerializer.Serialize(response["data"]);
+                var items = JsonSerializer.Deserialize<List<VisitaResumatDto>>(dataJson, _jsonOptions) ?? new List<VisitaResumatDto>();
+                
+                var paginationJson = response.ContainsKey("pagination") ? JsonSerializer.Serialize(response["pagination"]) : "{}";
+                var pagination = JsonSerializer.Deserialize<Dictionary<string, object>>(paginationJson, _jsonOptions) ?? new Dictionary<string, object>();
+                
+                return new PaginatedResponse<VisitaResumatDto>
+                {
+                    Items = items,
+                    PageNumber = pagination.ContainsKey("pageNumber") ? Convert.ToInt32(pagination["pageNumber"]) : 1,
+                    PageSize = pagination.ContainsKey("pageSize") ? Convert.ToInt32(pagination["pageSize"]) : items.Count,
+                    TotalCount = pagination.ContainsKey("totalItems") ? Convert.ToInt32(pagination["totalItems"]) : items.Count,
+                    TotalPages = pagination.ContainsKey("totalPages") ? Convert.ToInt32(pagination["totalPages"]) : 1,
+                    HasPreviousPage = pagination.ContainsKey("hasPreviousPage") && Convert.ToBoolean(pagination["hasPreviousPage"]),
+                    HasNextPage = pagination.ContainsKey("hasNextPage") && Convert.ToBoolean(pagination["hasNextPage"])
+                };
+            }
+            return new PaginatedResponse<VisitaResumatDto>();
+        }
+        catch
+        {
+            return new PaginatedResponse<VisitaResumatDto>();
+        }
+    }
+
+    public async Task<VisitaDetailDto?> GetVisitByIdAsync(string id)
+    {
+        return await _httpClient.GetFromJsonAsync<VisitaDetailDto>($"/api/visits/{id}", _jsonOptions);
+    }
+
+    // ===== Medicines (Medicaments) =====
+
+    public async Task<List<VeterinaryMedicineDto>> SearchVeterinaryMedicinesAsync(
+        string query,
+        string? species = null)
+    {
+        var queryParams = new List<string> { $"query={Uri.EscapeDataString(query)}" };
+        if (!string.IsNullOrEmpty(species)) queryParams.Add($"species={Uri.EscapeDataString(species)}");
+
+        var queryString = "?" + string.Join("&", queryParams);
+        var response = await _httpClient.GetFromJsonAsync<List<VeterinaryMedicineDto>>($"/api/medicines/veterinary/search{queryString}", _jsonOptions);
+        return response ?? new List<VeterinaryMedicineDto>();
+    }
+
+    public async Task<VeterinaryMedicineDto?> GetVeterinaryMedicineByCodeAsync(string cnCode)
+    {
+        return await _httpClient.GetFromJsonAsync<VeterinaryMedicineDto>($"/api/medicines/veterinary/{cnCode}", _jsonOptions);
+    }
+
+    public async Task<List<HumanMedicineDto>> SearchHumanMedicinesAsync(string query)
+    {
+        var queryString = $"?query={Uri.EscapeDataString(query)}";
+        var response = await _httpClient.GetFromJsonAsync<List<HumanMedicineDto>>($"/api/medicines/human/search{queryString}", _jsonOptions);
+        return response ?? new List<HumanMedicineDto>();
+    }
+
+    public async Task<HumanMedicineDto?> GetHumanMedicineByCodeAsync(string cnCode)
+    {
+        return await _httpClient.GetFromJsonAsync<HumanMedicineDto>($"/api/medicines/human/{cnCode}", _jsonOptions);
+    }
 }

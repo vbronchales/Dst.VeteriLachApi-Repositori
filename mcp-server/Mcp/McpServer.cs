@@ -156,6 +156,152 @@ public class McpServer
                             ["endDate"] = new PropertySchema { Type = "string", Description = "End date (YYYY-MM-DD)" }
                         }
                     }
+                },
+                // Propietaris (Clients)
+                new Tool
+                {
+                    Name = "get_propietaris",
+                    Description = "Get a paginated list of clients/owners with optional filters",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["pageNumber"] = new PropertySchema { Type = "number", Description = "Page number" },
+                            ["pageSize"] = new PropertySchema { Type = "number", Description = "Page size" },
+                            ["searchTerm"] = new PropertySchema { Type = "string", Description = "Search by name, email, or phone" },
+                            ["poblacio"] = new PropertySchema { Type = "string", Description = "Filter by city" },
+                            ["codiPostal"] = new PropertySchema { Type = "string", Description = "Filter by postal code" },
+                            ["nomes_actius"] = new PropertySchema { Type = "boolean", Description = "Show only active clients" }
+                        }
+                    }
+                },
+                new Tool
+                {
+                    Name = "get_propietari_detail",
+                    Description = "Get detailed information about a specific client/owner including animals and phones",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["propietariId"] = new PropertySchema { Type = "string", Description = "Client ID (GUID)" }
+                        },
+                        Required = new List<string> { "propietariId" }
+                    }
+                },
+                // Animals (Mascotes)
+                new Tool
+                {
+                    Name = "get_animals",
+                    Description = "Get a paginated list of animals/pets with optional filters",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["pageNumber"] = new PropertySchema { Type = "number", Description = "Page number" },
+                            ["pageSize"] = new PropertySchema { Type = "number", Description = "Page size" },
+                            ["searchTerm"] = new PropertySchema { Type = "string", Description = "Search by name or microchip" },
+                            ["idPropietari"] = new PropertySchema { Type = "string", Description = "Filter by owner ID" },
+                            ["idEspecie"] = new PropertySchema { Type = "string", Description = "Filter by species ID" }
+                        }
+                    }
+                },
+                new Tool
+                {
+                    Name = "get_animal_detail",
+                    Description = "Get detailed information about a specific animal/pet including owner data",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["animalId"] = new PropertySchema { Type = "string", Description = "Animal ID (GUID)" }
+                        },
+                        Required = new List<string> { "animalId" }
+                    }
+                },
+                // Medical History (Visites)
+                new Tool
+                {
+                    Name = "get_animal_visits",
+                    Description = "Get medical visit history for a specific animal",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["animalId"] = new PropertySchema { Type = "string", Description = "Animal ID (GUID)" },
+                            ["pageNumber"] = new PropertySchema { Type = "number", Description = "Page number" },
+                            ["pageSize"] = new PropertySchema { Type = "number", Description = "Page size" },
+                            ["dataInici"] = new PropertySchema { Type = "string", Description = "Start date (YYYY-MM-DD)" },
+                            ["dataFi"] = new PropertySchema { Type = "string", Description = "End date (YYYY-MM-DD)" }
+                        },
+                        Required = new List<string> { "animalId" }
+                    }
+                },
+                new Tool
+                {
+                    Name = "get_visit_detail",
+                    Description = "Get complete details of a veterinary visit including clinical notes, tests, and vaccines",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["visitId"] = new PropertySchema { Type = "string", Description = "Visit ID (GUID)" }
+                        },
+                        Required = new List<string> { "visitId" }
+                    }
+                },
+                // Medicines (Medicaments)
+                new Tool
+                {
+                    Name = "search_veterinary_medicines",
+                    Description = "Search veterinary medicines in CimaVet database",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["query"] = new PropertySchema { Type = "string", Description = "Search query (name, active ingredient, code)" },
+                            ["species"] = new PropertySchema { Type = "string", Description = "Target species (optional)" }
+                        },
+                        Required = new List<string> { "query" }
+                    }
+                },
+                new Tool
+                {
+                    Name = "get_veterinary_medicine",
+                    Description = "Get detailed information about a veterinary medicine by national code",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["cnCode"] = new PropertySchema { Type = "string", Description = "National Code (CN)" }
+                        },
+                        Required = new List<string> { "cnCode" }
+                    }
+                },
+                new Tool
+                {
+                    Name = "search_human_medicines",
+                    Description = "Search human medicines in CIMA database",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["query"] = new PropertySchema { Type = "string", Description = "Search query (name, active ingredient, code)" }
+                        },
+                        Required = new List<string> { "query" }
+                    }
+                },
+                new Tool
+                {
+                    Name = "get_human_medicine",
+                    Description = "Get detailed information about a human medicine by national code",
+                    InputSchema = new InputSchema
+                    {
+                        Properties = new Dictionary<string, PropertySchema>
+                        {
+                            ["cnCode"] = new PropertySchema { Type = "string", Description = "National Code (CN)" }
+                        },
+                        Required = new List<string> { "cnCode" }
+                    }
                 }
             }
         };
@@ -182,6 +328,16 @@ public class McpServer
             "get_customer_sales" => await ExecuteGetCustomerSalesAsync(arguments),
             "get_debts" => await ExecuteGetDebtsAsync(arguments),
             "get_payment_advances" => await ExecuteGetPaymentAdvancesAsync(arguments),
+            "get_propietaris" => await ExecuteGetPropietarisAsync(arguments),
+            "get_propietari_detail" => await ExecuteGetPropietariDetailAsync(arguments),
+            "get_animals" => await ExecuteGetAnimalsAsync(arguments),
+            "get_animal_detail" => await ExecuteGetAnimalDetailAsync(arguments),
+            "get_animal_visits" => await ExecuteGetAnimalVisitsAsync(arguments),
+            "get_visit_detail" => await ExecuteGetVisitDetailAsync(arguments),
+            "search_veterinary_medicines" => await ExecuteSearchVeterinaryMedicinesAsync(arguments),
+            "get_veterinary_medicine" => await ExecuteGetVeterinaryMedicineAsync(arguments),
+            "search_human_medicines" => await ExecuteSearchHumanMedicinesAsync(arguments),
+            "get_human_medicine" => await ExecuteGetHumanMedicineAsync(arguments),
             _ => throw new Exception($"Unknown tool: {toolName}")
         };
 
@@ -254,6 +410,108 @@ public class McpServer
             endDate: GetStringArg(args, "endDate")
         );
         
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    // ===== Propietaris (Clients) =====
+
+    private async Task<string> ExecuteGetPropietarisAsync(Dictionary<string, object> args)
+    {
+        var response = await _apiClient.GetPropietarisAsync(
+            pageNumber: GetIntArg(args, "pageNumber"),
+            pageSize: GetIntArg(args, "pageSize"),
+            searchTerm: GetStringArg(args, "searchTerm"),
+            poblacio: GetStringArg(args, "poblacio"),
+            codiPostal: GetStringArg(args, "codiPostal"),
+            nomes_actius: GetBoolArg(args, "nomes_actius")
+        );
+        
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    private async Task<string> ExecuteGetPropietariDetailAsync(Dictionary<string, object> args)
+    {
+        var propietariId = GetStringArg(args, "propietariId") ?? throw new Exception("propietariId is required");
+        var response = await _apiClient.GetPropietariByIdAsync(propietariId);
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    // ===== Animals (Mascotes) =====
+
+    private async Task<string> ExecuteGetAnimalsAsync(Dictionary<string, object> args)
+    {
+        var response = await _apiClient.GetAnimalsAsync(
+            pageNumber: GetIntArg(args, "pageNumber"),
+            pageSize: GetIntArg(args, "pageSize"),
+            searchTerm: GetStringArg(args, "searchTerm"),
+            idPropietari: GetStringArg(args, "idPropietari"),
+            idEspecie: GetStringArg(args, "idEspecie")
+        );
+        
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    private async Task<string> ExecuteGetAnimalDetailAsync(Dictionary<string, object> args)
+    {
+        var animalId = GetStringArg(args, "animalId") ?? throw new Exception("animalId is required");
+        var response = await _apiClient.GetAnimalByIdAsync(animalId);
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    // ===== Medical History (Visites) =====
+
+    private async Task<string> ExecuteGetAnimalVisitsAsync(Dictionary<string, object> args)
+    {
+        var animalId = GetStringArg(args, "animalId") ?? throw new Exception("animalId is required");
+        var response = await _apiClient.GetAnimalVisitsAsync(
+            animalId,
+            pageNumber: GetIntArg(args, "pageNumber"),
+            pageSize: GetIntArg(args, "pageSize"),
+            dataInici: GetStringArg(args, "dataInici"),
+            dataFi: GetStringArg(args, "dataFi")
+        );
+        
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    private async Task<string> ExecuteGetVisitDetailAsync(Dictionary<string, object> args)
+    {
+        var visitId = GetStringArg(args, "visitId") ?? throw new Exception("visitId is required");
+        var response = await _apiClient.GetVisitByIdAsync(visitId);
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    // ===== Medicines (Medicaments) =====
+
+    private async Task<string> ExecuteSearchVeterinaryMedicinesAsync(Dictionary<string, object> args)
+    {
+        var query = GetStringArg(args, "query") ?? throw new Exception("query is required");
+        var response = await _apiClient.SearchVeterinaryMedicinesAsync(
+            query,
+            species: GetStringArg(args, "species")
+        );
+        
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    private async Task<string> ExecuteGetVeterinaryMedicineAsync(Dictionary<string, object> args)
+    {
+        var cnCode = GetStringArg(args, "cnCode") ?? throw new Exception("cnCode is required");
+        var response = await _apiClient.GetVeterinaryMedicineByCodeAsync(cnCode);
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    private async Task<string> ExecuteSearchHumanMedicinesAsync(Dictionary<string, object> args)
+    {
+        var query = GetStringArg(args, "query") ?? throw new Exception("query is required");
+        var response = await _apiClient.SearchHumanMedicinesAsync(query);
+        return JsonSerializer.Serialize(response, _jsonOptions);
+    }
+
+    private async Task<string> ExecuteGetHumanMedicineAsync(Dictionary<string, object> args)
+    {
+        var cnCode = GetStringArg(args, "cnCode") ?? throw new Exception("cnCode is required");
+        var response = await _apiClient.GetHumanMedicineByCodeAsync(cnCode);
         return JsonSerializer.Serialize(response, _jsonOptions);
     }
 
