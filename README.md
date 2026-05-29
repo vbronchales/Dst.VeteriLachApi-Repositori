@@ -27,6 +27,23 @@ Prova que l'API funciona (no requereix API Key):
 curl https://localhost:7001/api/health
 ```
 
+### 4. Publicar al IIS Local
+
+Per publicar al servidor IIS local (port 5072):
+
+```powershell
+# Executar PowerShell com a Administrador i executar:
+.\Deploy-ToIIS.ps1
+```
+
+📖 **Documentació completa**: Consulta [DEPLOY-IIS.md](./DEPLOY-IIS.md) per:
+- Instruccions detallades de publicació
+- Configuració de GitHub Actions amb runner local
+- Automatització amb Git hooks
+- Troubleshooting i resolució d'errors
+
+**URL IIS Local**: http://localhost:5072
+
 ---
 
 ## 🔐 Autenticació amb API Key
