@@ -25,7 +25,7 @@ cd bin\Release\net10.0
 info: VeteriLach.McpServer[0]
       VeteriLach MCP Server v1.0.0 starting...
 info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://localhost:5273
+      Now listening on: https://localhost:5273
 ```
 
 ⚠️ **IMPORTANT**: Deixa aquest terminal obert mentre uses ChatGPT Desktop.
@@ -47,7 +47,7 @@ C:\Users\vbron\AppData\Roaming\ChatGPT\mcp_config.json
 {
   "mcpServers": {
     "veterilach": {
-      "url": "http://localhost:5273/messages",
+      "url": "https://localhost:5273/messages",
       "transport": "http"
     }
   }
@@ -78,7 +78,7 @@ Llista'm les últimes 5 vendes
 ### Test 1: Health check
 
 ```powershell
-Invoke-WebRequest -Uri "http://localhost:5273/health" -UseBasicParsing
+Invoke-WebRequest -Uri "https://localhost:5273/health" -UseBasicParsing
 ```
 
 **Resposta esperada:**
@@ -95,7 +95,7 @@ $body = @{
     method = "tools/list"
 } | ConvertTo-Json
 
-Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body -ContentType "application/json"
+Invoke-RestMethod -Uri "https://localhost:5273/messages" -Method Post -Body $body -ContentType "application/json"
 ```
 
 **Hauria de retornar 15 tools.**
@@ -104,8 +104,8 @@ Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body
 
 | Aspecte | Versió stdio (antiga) | Versió HTTP (nova) |
 |---------|----------------------|-------------------|
-| Transport | stdin/stdout | HTTP REST |
-| Port | - | 5273 |
+| Transport | stdin/stdout | HTTPS REST |
+| Port | - | 5273 (HTTPS) |
 | Format config | `command`, `args`, `env` | `url`, `transport` |
 | Compatibilitat | Claude Desktop | ChatGPT Desktop |
 | Endpoints | - | `GET /`, `GET /health`, `POST /messages` |
@@ -117,7 +117,7 @@ Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body
 **Solució**: Assegura't que el servidor està executant-se:
 ```powershell
 # Verifica
-Invoke-WebRequest -Uri "http://localhost:5273/health" -UseBasicParsing
+Invoke-WebRequest -Uri "https://localhost:5273/health" -UseBasicParsing
 
 # Si falla, executa el servidor
 cd C:\Dst2026\Dst.VeteriLachApi-Repositori\mcp-server\bin\Release\net10.0
@@ -191,7 +191,8 @@ El servidor exposa:
 
 - [ ] Servidor compilat (`dotnet build --configuration Release`)
 - [ ] Servidor executant-se (`.\VeteriLach.McpServer.exe`)
-- [ ] Health check funciona (`http://localhost:5273/health`)
+- [ ] Certificat SSL de desenvolupament instal·lat (`dotnet dev-certs https --trust`)
+- [ ] Health check funciona (`https://localhost:5273/health`)
 - [ ] `mcp_config.json` editat amb format HTTP
 - [ ] ChatGPT Desktop reiniciat
 - [ ] Servidor detectat a ChatGPT Desktop

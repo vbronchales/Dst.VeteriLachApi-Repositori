@@ -4,24 +4,24 @@ Servidor MCP (Model Context Protocol) per accedir a VeteriLach Read API des de l
 
 ## ⚠️ IMPORTANT - Transport HTTP
 
-Aquest servidor MCP utilitza **transport HTTP** (no stdio). ChatGPT Desktop requereix servidors MCP amb comunicació HTTP/REST, no stdin/stdout.
+Aquest servidor MCP utilitza **transport HTTPS** (HTTP segur). ChatGPT Desktop requereix servidors MCP amb comunicació HTTP/REST, i aquesta implementació utilitza HTTPS per màxima seguretat.
 
 ## Característiques
 
-- ✅ Protocol MCP estàndard (JSON-RPC 2.0 sobre HTTP)
+- ✅ Protocol MCP estàndard (JSON-RPC 2.0 sobre HTTPS)
 - ✅ **15 tools exposades** per accedir a tota la funcionalitat de l'API
-- ✅ Servidor web autònom (no requereix instal·lació complexa)
+- ✅ Servidor web autònom amb certificat SSL
 - ✅ Compatible amb ChatGPT Desktop
-- ✅ Endpoints HTTP RESTful
+- ✅ Endpoints HTTPS RESTful segurs
 
 ## Arquitectura
 
 ```
 ChatGPT Desktop
       ↓
- HTTP (JSON-RPC)
+ HTTPS (JSON-RPC)
       ↓
-MCP Server HTTP (port 5273)
+MCP Server HTTPS (port 5273)
       ↓
  HTTP REST API
       ↓
@@ -68,7 +68,7 @@ Edita `appsettings.json` si cal canviar la configuració:
     }
   },
   "AllowedHosts": "*",
-  "Urls": "http://localhost:5273",
+  "Urls": "https://localhost:5273",
   "VeteriLachApi": {
     "BaseUrl": "http://localhost:41229",
     "ApiKey": "4c806362b613f7496abf284146efd31da90e4b16169fe001841ca17290f427c4",
@@ -77,8 +77,25 @@ Edita `appsettings.json` si cal canviar la configuració:
   "McpServer": {
     "Name": "veterilach-server",
     "Version": "1.0.0"
+  },
+  "Kestrel": {
+    "Endpoints": {
+      "Https": {
+        "Url": "https://localhost:5273",
+        "Protocols": "Http1AndHttp2"
+      }
+    }
   }
 }
+```
+
+### Pas 2b: Configurar certificat SSL
+
+Per a desenvolupament local, utilitza el certificat de .NET:
+
+```powershell
+# Instal·la i confia en el certificat de desenvolupament
+dotnet dev-certs https --trust
 ```
 
 ### Pas 3: Executar el Servidor MCP
@@ -114,7 +131,7 @@ Obre el navegador o fes:
 
 ```powershell
 # Test de salut
-curl http://localhost:5273/health
+curl https://localhost:5273/health
 
 # Resposta esperada:
 # {"status":"healthy","server":"veterilach-server","version":"1.0.0","timestamp":"..."}
@@ -143,7 +160,7 @@ Edita o crea el fitxer `mcp_config.json`:
 {
   "mcpServers": {
     "veterilach": {
-      "url": "http://localhost:5273/messages",
+      "url": "https://localhost:5273/messages",
       "transport": "http"
     }
   }
@@ -151,7 +168,8 @@ Edita o crea el fitxer `mcp_config.json`:
 ```
 
 **NOTES IMPORTANTS:**
-- La URL ha de ser exactament `http://localhost:5273/messages` (endpoint POST per MCP)
+- La URL ha de ser exactament `https://localhost:5273/messages` (endpoint POST per MCP)
+- Utilitza **HTTPS** (no HTTP) per comunicació segura
 - El camp `transport` ha de ser `"http"` (no `"stdio"`)
 - **NO** utilitzis `command`, `args` o `env` (això és per servidors stdio)
 
@@ -173,7 +191,7 @@ El servidor MCP exposa els següents endpoints:
 Informació bàsica del servidor:
 
 ```bash
-curl http://localhost:5273/
+curl https://localhost:5273/
 ```
 
 Resposta:
@@ -195,7 +213,7 @@ Resposta:
 Health check del servidor:
 
 ```bash
-curl http://localhost:5273/health
+curl https://localhost:5273/health
 ```
 
 Resposta:
@@ -213,7 +231,7 @@ Resposta:
 **Endpoint principal MCP** - Accepta peticions JSON-RPC 2.0:
 
 ```bash
-curl -X POST http://localhost:5273/messages \
+curl -X POST https://localhost:5273/messages \
   -H "Content-Type: application/json" \
   -d '{
     "jsonrpc": "2.0",
@@ -340,7 +358,7 @@ Invoke-RestMethod -Uri "http://localhost:5273/messages" -Method Post -Body $body
 
 ```powershell
 # Health check
-Invoke-WebRequest -Uri "http://localhost:5273/health" -UseBasicParsing
+Invoke-WebRequest -Uri "https://localhost:5273/health" -UseBasicParsing
 
 # Hauria de retornar 200 OK amb:
 # {"status":"healthy",...}
@@ -369,7 +387,7 @@ $body = @{
     }
 } | ConvertTo-Json -Depth 5
 
-Invoke-RestMethod -Uri "http://localhost:5273/messages" `
+Invoke-RestMethod -Uri "https://localhost:5273/messages" `
     -Method Post `
     -Body $body `
     -ContentType "application/json"
@@ -439,7 +457,7 @@ Restart-WebAppPool -Name "VeteriLAchReadApiAppPool"
    }
    ```
 
-2. **Servidor no executant-se**: Verifica amb `curl http://localhost:5273/health`
+2. **Servidor no executant-se**: Verifica amb `curl https://localhost:5273/health`
 
 3. **ChatGPT Desktop no reiniciat**: Tanca completament i reobre l'aplicació
 
@@ -468,7 +486,7 @@ Start-Service MSSQLSERVER
 **Opció 1**: Canvia el port a `appsettings.json`:
 ```json
 {
-  "Urls": "http://localhost:5280"
+  "Urls": "https://localhost:5280"
 }
 ```
 
@@ -477,7 +495,7 @@ I actualitza `mcp_config.json`:
 {
   "mcpServers": {
     "veterilach": {
-      "url": "http://localhost:5280/messages",
+      "url": "https://localhost:5280/messages",
       "transport": "http"
     }
   }
@@ -499,8 +517,10 @@ Stop-Process -Id <PID> -Force
 
 Aquest servidor MCP està dissenyat per **ús local** (localhost) solament:
 
-- ✅ Exposició a `http://localhost:5273` (només accessible des de la mateixa màquina)
-- ❌ **NO exposar públicament a Internet**
+- ✅ Exposició a `https://localhost:5273` (només accessible des de la mateixa màquina)
+- ✅ Utilitza **HTTPS** per comunicació xifrada
+- ✅ Certificat SSL de desenvolupament (auto-signat, confiat localment)
+- ❌ **NO exposar públicament a Internet sense certificat vàlid**
 - ❌ **NO usar en producció sense autenticació addicional**
 
 ### API Key
@@ -509,7 +529,7 @@ L'API Key està hardcodejada per simplicitat. En un entorn de producció:
 
 1. Utilitza **variables d'entorn** per l'API Key
 2. Implementa **rotació periòdica** de claus
-3. Usa **HTTPS** (no HTTP)
+3. Per producció, usa **certificat SSL vàlid** (no auto-signat)
 4. Implementa **autenticació adicional** (OAuth2, JWT, etc.)
 
 ## Arquitectura Tècnica
@@ -520,14 +540,15 @@ L'API Key està hardcodejada per simplicitat. En un entorn de producció:
 ┌─────────────────────────────────────┐
 │   ChatGPT Desktop (Client)          │
 └──────────────┬──────────────────────┘
-               │ HTTP POST /messages
+               │ HTTPS POST /messages
                │ (JSON-RPC 2.0)
                ▼
 ┌─────────────────────────────────────┐
 │   MCP Server (ASP.NET Core)         │
-│   - Port: 5273                      │
+│   - Port: 5273 (HTTPS)              │
 │   - Endpoints: /, /health, /messages│
 │   - Protocol: MCP v2024-11-05       │
+│   - SSL: Certificat desenvolupament │
 └──────────────┬──────────────────────┘
                │ HTTP REST calls
                │ (X-Api-Key header)
@@ -546,7 +567,7 @@ L'API Key està hardcodejada per simplicitat. En un entorn de producció:
 
 ### Flux d'una petició
 
-1. **ChatGPT Desktop** envia una petició JSON-RPC a `POST http://localhost:5273/messages`
+1. **ChatGPT Desktop** envia una petició JSON-RPC a `POST https://localhost:5273/messages`
 2. **MCP Server** rep la petició, deserialitza i identifica el mètode
 3. Si és `tools/call`, extreu el nom de la tool i arguments
 4. **MCP Server** crida l'API de VeteriLach corresponent amb l'API Key
@@ -561,8 +582,8 @@ L'API Key està hardcodejada per simplicitat. En un entorn de producció:
 
 ```
 mcp-server/
-├── Program.cs                  # Entrada del servidor web ASP.NET Core
-├── appsettings.json           # Configuració del servidor
+├── Program.cs                  # Entrada del servidor web ASP.NET Core (HTTPS)
+├── appsettings.json           # Configuració del servidor (incl. SSL)
 ├── Mcp/
 │   ├── McpModels.cs           # Models del protocol MCP (JSON-RPC)
 │   └── McpServer.cs           # Lògica del servidor MCP (15 tools)
@@ -653,7 +674,7 @@ info: VeteriLach.McpServer[0]
 info: VeteriLach.McpServer[0]
       Server ready. Listening for HTTP requests...
 info: Microsoft.Hosting.Lifetime[14]
-      Now listening on: http://localhost:5273
+      Now listening on: https://localhost:5273
 info: VeteriLach.McpServer[0]
       Processing method: tools/call
 info: VeteriLach.McpServer[0]
@@ -664,8 +685,9 @@ info: VeteriLach.McpServer[0]
 
 ### v1.0.0 (2026-05-29) - HTTP Transport
 
-- 🚀 **BREAKING CHANGE**: Migració de transport stdio a HTTP
-- ✅ Servidor web ASP.NET Core amb endpoints RESTful
+- 🚀 **BREAKING CHANGE**: Migració de transport stdio a HTTPS
+- ✅ Servidor web ASP.NET Core amb endpoints RESTful segurs (HTTPS)
+- ✅ Certificat SSL de desenvolupament per comunicació xifrada
 - ✅ 15 tools implementades:
   - 5 Sales API (get_sales, get_sale_detail, get_customer_sales, get_debts, get_payment_advances)
   - 2 Propietaris API (get_propietaris, get_propietari_detail)
