@@ -3,7 +3,7 @@
 # REQUEREIX EXECUTAR COM A ADMINISTRADOR
 
 param(
-    [string]$AppPoolName = "VeteriLachApi",
+    [string]$AppPoolName = "VeteriLAchReadApiAppPool",
     [string]$IISPath = "c:\inetpub\wwwroot\VeteriLachApi",
     [string]$TempPath = "c:\temp\VeteriLachApi_publish"
 )
