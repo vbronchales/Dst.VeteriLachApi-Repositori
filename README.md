@@ -809,7 +809,58 @@ Consulta la **[Guia de Deployment Completa (DEPLOYMENT.md)](DEPLOYMENT.md)** per
 - Configuració HTTPS amb certificats
 
 ---
+## 🤖 Servidors MCP per IA (Claude & ChatGPT Desktop)
 
+Aquest projecte inclou **dues versions** de servidors MCP (Model Context Protocol) que permeten accedir a l'API des d'aplicacions d'IA d'escriptori:
+
+| Versió | Client compatible | Transport | Port | Documentació |
+|--------|-------------------|-----------|------|--------------|
+| **stdio** | Claude Desktop | stdin/stdout | - | [mcp-server-stdio/README.md](mcp-server-stdio/README.md) |
+| **HTTPS** | ChatGPT Desktop | REST/HTTPS | 5273 | [mcp-server-https/README.md](mcp-server-https/README.md) |
+
+### 🎯 Quick Start MCP
+
+#### Per Claude Desktop (stdio)
+```powershell
+# 1. Compilar
+cd mcp-server-stdio
+dotnet build -c Release
+
+# 2. Configurar claude_desktop_config.json
+# (veure mcp-server-stdio/README.md)
+
+# 3. Reiniciar Claude Desktop
+```
+
+#### Per ChatGPT Desktop (HTTPS)
+```powershell
+# 1. Compilar
+cd mcp-server-https
+dotnet build -c Release
+
+# 2. Executar (deixar terminal obert)
+.\Start-McpServer.ps1
+
+# 3. Configurar mcp_config.json
+# (veure mcp-server-https/README.md)
+
+# 4. Reiniciar ChatGPT Desktop
+```
+
+### 🛠️ 15 Tools MCP Disponibles
+
+Els servidors MCP exposen 15 eines per interactuar amb totes les àrees de l'API:
+
+- **Vendes** (5): `get_sales`, `get_sale_detail`, `get_customer_sales`, `get_debts`, `get_payment_advances`
+- **Propietaris** (2): `get_propietaris`, `get_propietari_detail`
+- **Animals** (3): `get_animals`, `get_animal_detail`, `get_animal_visits`
+- **Historials** (1): `get_visit_detail`
+- **Medicaments** (4): `search_veterinary_medicines`, `get_veterinary_medicine`, `search_human_medicines`, `get_human_medicine`
+
+📖 **Guia completa**: [README_MCP_DUAL.md](README_MCP_DUAL.md)  
+📖 **Configuració dual**: [CONFIGURACIO_MCP_DUAL.md](CONFIGURACIO_MCP_DUAL.md)
+
+---
 ## 📝 Notes
 
 - **Només lectura**: Aquesta API només permet operacions GET (consulta)

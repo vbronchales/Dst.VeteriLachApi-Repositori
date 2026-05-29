@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "veterilach": {
+      "command": "C:\\Dst2026\\Dst.VeteriLachApi-Repositori\\mcp-server-stdio\\bin\\Release\\net10.0\\VeteriLach.McpServer.Stdio.exe",
+      "args": [],
+      "env": {}
+    }
+  }
+}

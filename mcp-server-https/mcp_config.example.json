@@ -1,0 +1,6 @@
+{
+  "veterilach": {
+    "url": "https://localhost:5273/messages",
+    "transport": "http"
+  }
+}
