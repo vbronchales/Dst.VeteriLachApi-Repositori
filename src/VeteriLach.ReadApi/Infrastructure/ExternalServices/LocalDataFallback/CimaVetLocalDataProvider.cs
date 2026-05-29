@@ -139,7 +139,7 @@ public class CimaVetLocalDataProvider : ILocalMedicineDataProvider<VeterinaryMed
                 {
                     currentElement = reader.Name;
 
-                    if (reader.Name == "medicamento")
+                    if (reader.Name == "prescription")
                     {
                         currentMedicine = new VeterinaryMedicineDto();
                         currentSpecies = new List<string>();
@@ -153,43 +153,55 @@ public class CimaVetLocalDataProvider : ILocalMedicineDataProvider<VeterinaryMed
 
                     switch (currentElement)
                     {
-                        case "nregistro":
+                        case "nro_definitivo":
                             currentMedicine.CnCode = value;
                             break;
-                        case "nombre":
+                        case "nombre_med":
                             currentMedicine.CommercialName = value;
                             break;
-                        case "pactivos":
-                            currentMedicine.ActiveIngredient = value;
+                        case "cod_principio_activo":
+                            // Principi actiu guardarem el codi, idealment caldria un diccionari
+                            if (string.IsNullOrEmpty(currentMedicine.ActiveIngredient))
+                                currentMedicine.ActiveIngredient = value;
+                            else
+                                currentMedicine.ActiveIngredient += ", " + value;
                             break;
-                        case "concentracion":
+                        case "cantidad_concentracion":
                             currentMedicine.Concentration = value;
                             break;
-                        case "labtitular":
-                            currentMedicine.Laboratory = value;
+                        case "titular":
+                            currentMedicine.Laboratory = value; // També és un codi, necessitaria diccionari
                             break;
-                        case "formaFarmaceutica":
-                            currentMedicine.PharmaceuticalForm = value;
+                        case "cod_forma_farmaceutica":
+                            currentMedicine.PharmaceuticalForm = value; // És un codi
                             break;
-                        case "especieDestino":
+                        case "cod_espdes":
+                            // Codi espècie, caldr ia mappejar a text
                             if (!currentSpecies.Contains(value))
                                 currentSpecies.Add(value);
                             break;
-                        case "indicaciones":
-                            currentMedicine.TherapeuticIndications = value;
+                        case "id_indicacion":
+                            // Indicacions terapèutiques (codi)
+                            if (string.IsNullOrEmpty(currentMedicine.TherapeuticIndications))
+                                currentMedicine.TherapeuticIndications = value;
+                            else
+                                currentMedicine.TherapeuticIndications += ", " + value;
                             break;
-                        case "dosis":
+                        case "posologia":
                             currentMedicine.Dosage = value;
                             break;
-                        case "contraIndicaciones":
-                            currentMedicine.Contraindications = value;
+                        case "id_contraindicacion":
+                            if (string.IsNullOrEmpty(currentMedicine.Contraindications))
+                                currentMedicine.Contraindications = value;
+                            else
+                                currentMedicine.Contraindications += ", " + value;
                             break;
-                        case "cpresc":
-                            currentMedicine.PrescriptionRequired = value.Contains("Prescripción", StringComparison.OrdinalIgnoreCase);
+                        case "prescripcion":
+                            currentMedicine.PrescriptionRequired = value.Equals("SI", StringComparison.OrdinalIgnoreCase);
                             break;
                     }
                 }
-                else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "medicamento" && currentMedicine != null)
+                else if (reader.NodeType == XmlNodeType.EndElement && reader.Name == "prescription" && currentMedicine != null)
                 {
                     if (!string.IsNullOrEmpty(currentMedicine.CnCode) && !string.IsNullOrEmpty(currentMedicine.CommercialName))
                     {
