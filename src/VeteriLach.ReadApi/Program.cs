@@ -3,6 +3,7 @@ using Serilog;
 using VeteriLach.ReadApi.Middleware;
 using VeteriLach.ReadApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using VeteriLach.ReadApi.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -109,9 +110,6 @@ try
         cfg.AddOpenBehavior(typeof(VeteriLach.ReadApi.Application.Common.Behaviors.LoggingBehavior<,>));
     });
 
-    // ===== Configurar AutoMapper =====
-    builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
     // ===== Configurar FluentValidation =====
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
@@ -120,6 +118,10 @@ try
 
     // ===== Configurar HttpClient Factory per a serveis externs =====
     builder.Services.AddHttpClient();
+
+    builder.Services.AddInfrastructure(builder.Configuration);
+
+
 
     // ===== Registrar proveïdors de dades locals (XMLs) com a fallback =====
     builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.HumanMedicineDto>,

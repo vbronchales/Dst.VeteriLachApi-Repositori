@@ -6,39 +6,37 @@ namespace VeteriLach.ReadApi.Application.Common.Behaviors;
 /// <summary>
 /// Pipeline behavior per registrar el temps d'execució de cada request
 /// </summary>
-public class LoggingBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+public partial class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>
 {
-    private readonly ILogger<LoggingBehavior<TRequest, TResponse>> _logger;
-
-    public LoggingBehavior(ILogger<LoggingBehavior<TRequest, TResponse>> logger)
-    {
-        _logger = logger;
-    }
-
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
         var requestName = typeof(TRequest).Name;
         var stopwatch = Stopwatch.StartNew();
 
-        _logger.LogInformation("Executant {RequestName}", requestName);
-
+        LogExecutingRequest(requestName);
         try
         {
             var response = await next();
             stopwatch.Stop();
 
-            _logger.LogInformation("Completat {RequestName} en {ElapsedMilliseconds}ms",
-                requestName, stopwatch.ElapsedMilliseconds);
+            LogCompletedRequest(requestName, stopwatch.ElapsedMilliseconds);
 
             return response;
         }
         catch (Exception ex)
         {
             stopwatch.Stop();
-            _logger.LogError(ex, "Error executant {RequestName} després de {ElapsedMilliseconds}ms",
-                requestName, stopwatch.ElapsedMilliseconds);
+            LogErrorRequest(requestName, stopwatch.ElapsedMilliseconds, ex);
             throw;
         }
     }
+
+    [LoggerMessage(EventId = 0, Level = LogLevel.Information, Message = "Executant {RequestName}")]
+    partial void LogExecutingRequest(string requestName);
+
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Completat {RequestName} en {ElapsedMilliseconds}ms")]
+    partial void LogCompletedRequest(string requestName, long elapsedMilliseconds);
+    [LoggerMessage(EventId = 2, Level = LogLevel.Error, Message = "Error executant {RequestName} després de {ElapsedMilliseconds}ms")]
+    partial void LogErrorRequest(string requestName, long elapsedMilliseconds, Exception ex);
 }

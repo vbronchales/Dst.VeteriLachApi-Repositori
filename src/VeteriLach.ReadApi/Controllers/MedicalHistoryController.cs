@@ -7,23 +7,16 @@ using VeteriLach.ReadApi.Application.MedicalHistory.Queries;
 namespace VeteriLach.ReadApi.Controllers;
 
 /// <summary>
-/// Controller per gestionar l'historial clínic dels animals
+/// Controlador per gestionar les visites mèdiques dels animals, incloent la consulta de l'historial mèdic i el detall de cada visita.
 /// </summary>
+/// <param name="mediator"></param>
+/// <param name="logger"></param>
 [ApiController]
 [Route("api/animals/{idAnimal}/visits")]
 [Route("api/visits")]
 [Produces("application/json")]
-public class MedicalHistoryController : ControllerBase
+public partial class MedicalHistoryController(IMediator mediator, ILogger<MedicalHistoryController> logger) : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<MedicalHistoryController> _logger;
-
-    public MedicalHistoryController(IMediator mediator, ILogger<MedicalHistoryController> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Obté la llista paginada de visites d'un animal
     /// </summary>
@@ -52,10 +45,9 @@ public class MedicalHistoryController : ControllerBase
             DataFi = dataFi
         };
 
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
 
-        _logger.LogInformation("Retornades {Count} visites de {Total} per animal {IdAnimal}",
-            result.Data.Count, result.Pagination.TotalItems, idAnimal);
+        LogAnimalVisitsReturned(result.Data.Count, result.Pagination.TotalItems, idAnimal);
 
         return Ok(result);
     }
@@ -72,15 +64,22 @@ public class MedicalHistoryController : ControllerBase
     public async Task<IActionResult> GetVisit(Guid id)
     {
         var query = new GetVisitByIdQuery(id);
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
 
         if (result == null)
         {
-            _logger.LogWarning("Visita {IdVisita} no trobada", id);
+            LogVisitNotFound(id);
             return NotFound(new { message = $"No s'ha trobat cap visita amb l'identificador {id}." });
         }
 
-        _logger.LogInformation("Retornat detall de visita {IdVisita}", id);
+        LogVisitReturned(id);
         return Ok(result);
     }
+
+    [LoggerMessage(EventId = 1001, Level = LogLevel.Information, Message = "Retornades {Count} visites de {Total} per animal {IdAnimal}")]
+    partial void LogAnimalVisitsReturned(int count, int total, Guid idAnimal);
+    [LoggerMessage(EventId = 1002, Level = LogLevel.Warning, Message = "Visita {IdVisita} no trobada")]
+    partial void LogVisitNotFound(Guid idVisita);
+    [LoggerMessage(EventId = 1003, Level = LogLevel.Information, Message = "Retornat detall de visita {IdVisita}")]
+    partial void LogVisitReturned(Guid idVisita);
 }

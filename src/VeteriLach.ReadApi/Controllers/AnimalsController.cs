@@ -6,17 +6,8 @@ namespace VeteriLach.ReadApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AnimalsController : ControllerBase
+public class AnimalsController(IMediator mediator) : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<AnimalsController> _logger;
-
-    public AnimalsController(IMediator mediator, ILogger<AnimalsController> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Obtenir una llista paginada d'animals
     /// </summary>
@@ -39,17 +30,9 @@ public class AnimalsController : ControllerBase
             pageSize = 50;
         }
 
-        var query = new GetAnimalsListQuery
-        {
-            PageNumber = pageNumber,
-            PageSize = pageSize,
-            SearchTerm = searchTerm,
-            IdPropietari = idPropietari,
-            IdEspecie = idEspecie
-        };
+        var query = new GetAnimalsListQuery(pageNumber, pageSize, searchTerm, idPropietari, idEspecie);
 
-        var result = await _mediator.Send(query);
-
+        var result = await mediator.Send(query);
         return Ok(result);
     }
 
@@ -61,7 +44,7 @@ public class AnimalsController : ControllerBase
     public async Task<IActionResult> GetAnimal(Guid id)
     {
         var query = new GetAnimalByIdQuery(id);
-        var animal = await _mediator.Send(query);
+        var animal = await mediator.Send(query);
 
         if (animal == null)
         {
