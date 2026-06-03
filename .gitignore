@@ -403,9 +403,9 @@ logs/
 *.log
 
 # Connection strings and secrets
-appsettings.Development.json
 appsettings.*.json
 !appsettings.json
+!appsettings.Development.json
 *.secret
 
 # API Keys
