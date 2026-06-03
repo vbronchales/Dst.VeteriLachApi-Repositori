@@ -8,17 +8,8 @@ namespace VeteriLach.ReadApi.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-public class MetadataController : ControllerBase
+public partial class MetadataController(IMediator mediator, ILogger<MetadataController> logger) : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<MetadataController> _logger;
-
-    public MetadataController(IMediator mediator, ILogger<MetadataController> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Obté totes les espècies disponibles amb comptador d'animals
     /// </summary>
@@ -28,13 +19,15 @@ public class MetadataController : ControllerBase
     [ProducesResponseType(typeof(List<EspecieDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEspecies(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Obtenint llistat d'espècies");
+        LogInformationGettingEspecies();
 
         var query = new GetEspeciesQuery();
-        var especies = await _mediator.Send(query, cancellationToken);
+        var especies = await mediator.Send(query, cancellationToken);
 
         return Ok(especies);
     }
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Obtenint llistat d'espècies")]
+    partial void LogInformationGettingEspecies();
 
     /// <summary>
     /// Obté totes les races, opcionalment filtrades per espècie
@@ -48,11 +41,13 @@ public class MetadataController : ControllerBase
         [FromQuery] string? especie = null,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Obtenint llistat de races amb filtre={Especie}", especie);
+        LogInformationGettingRases(especie);
 
         var query = new GetRasesQuery { Especie = especie };
-        var rases = await _mediator.Send(query, cancellationToken);
+        var rases = await mediator.Send(query, cancellationToken);
 
         return Ok(rases);
     }
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Obtenint llistat de races amb filtre={Especie}")]
+    partial void LogInformationGettingRases(string? especie);
 }
