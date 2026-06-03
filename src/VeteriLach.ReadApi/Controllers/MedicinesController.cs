@@ -10,19 +10,8 @@ namespace VeteriLach.ReadApi.Controllers;
 [ApiController]
 [Route("api/medicines")]
 [Produces("application/json")]
-public class MedicinesController : ControllerBase
+public partial class MedicinesController(IMediator mediator, ILogger<MedicinesController> logger) : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<MedicinesController> _logger;
-
-    public MedicinesController(
-        IMediator mediator,
-        ILogger<MedicinesController> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Cerca medicaments veterinaris a CimaVet
     /// </summary>
@@ -54,21 +43,17 @@ public class MedicinesController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Cercant medicaments veterinaris: {Query}, Espècie: {Species}", query, species);
+        LogInformationSearchingVeterinaryMedicines(query, species);
 
         try
         {
-            var results = await _mediator.Send(new SearchVeterinaryMedicinesQuery
-            {
-                Query = query,
-                Species = species
-            }, cancellationToken);
+            var results = await mediator.Send(new SearchVeterinaryMedicinesQuery(query,species), cancellationToken);
 
             return Ok(results);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cercant medicaments veterinaris");
+            LogErrorSearchingVeterinaryMedicines(ex);
             return StatusCode(503, new
             {
                 error = "Servei extern no disponible",
@@ -76,6 +61,12 @@ public class MedicinesController : ControllerBase
             });
         }
     }
+
+    [LoggerMessage(EventId = 1000, Level = LogLevel.Information, Message = "Cercant medicaments veterinaris: {Query}, Espècie: {Species}")]
+    partial void LogInformationSearchingVeterinaryMedicines(string query, string? species);
+
+    [LoggerMessage(EventId = 1001,Level = LogLevel.Error,Message = "Error cercant medicaments veterinaris")]
+    partial void LogErrorSearchingVeterinaryMedicines(Exception ex);
 
     /// <summary>
     /// Obté informació detallada d'un medicament veterinari per codi nacional
@@ -93,9 +84,7 @@ public class MedicinesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
-    public async Task<IActionResult> GetVeterinaryMedicineByCode(
-        string cnCode,
-        CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetVeterinaryMedicineByCode(string cnCode, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(cnCode))
         {
@@ -106,14 +95,11 @@ public class MedicinesController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Obtenint medicament veterinari amb codi: {CnCode}", cnCode);
+        LogInformationGettingVeterinaryMedicine(cnCode);
 
         try
         {
-            var result = await _mediator.Send(new GetVeterinaryMedicineByCodeQuery
-            {
-                CnCode = cnCode
-            }, cancellationToken);
+            var result = await mediator.Send(new GetVeterinaryMedicineByCodeQuery(cnCode), cancellationToken);
 
             if (result == null)
             {
@@ -128,7 +114,7 @@ public class MedicinesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error obtenint medicament veterinari {CnCode}", cnCode);
+            LogErrorGettingVeterinaryMedicine(cnCode, ex);
             return StatusCode(503, new
             {
                 error = "Servei extern no disponible",
@@ -136,6 +122,10 @@ public class MedicinesController : ControllerBase
             });
         }
     }
+    [LoggerMessage(EventId=1004, Level =LogLevel.Information, Message = "Obtenint medicament veterinari amb codi: {CnCode}")]
+    partial void LogInformationGettingVeterinaryMedicine(string cnCode);
+    [LoggerMessage(EventId = 1005, Level = LogLevel.Error, Message = "Error obtenint medicament veterinari {CnCode}")]
+    partial void LogErrorGettingVeterinaryMedicine(string cnCode, Exception ex);
 
     /// <summary>
     /// Cerca medicaments humans a CIMA
@@ -166,20 +156,17 @@ public class MedicinesController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Cercant medicaments humans: {Query}", query);
+        LogInformationSearchingHumanMedicines(query);
 
         try
         {
-            var results = await _mediator.Send(new SearchHumanMedicinesQuery
-            {
-                Query = query
-            }, cancellationToken);
+            var results = await mediator.Send(new SearchHumanMedicinesQuery(query), cancellationToken);
 
             return Ok(results);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cercant medicaments humans");
+            LogErrorSearchingHumanMedicines(ex);
             return StatusCode(503, new
             {
                 error = "Servei extern no disponible",
@@ -187,6 +174,11 @@ public class MedicinesController : ControllerBase
             });
         }
     }
+
+    [LoggerMessage(EventId = 1002, Level = LogLevel.Information, Message = "Cercant medicaments humans: {Query}")]
+    partial void LogInformationSearchingHumanMedicines(string query);
+    [LoggerMessage(EventId = 1003, Level = LogLevel.Error, Message = "Error cercant medicaments humans")]
+    partial void LogErrorSearchingHumanMedicines(Exception ex);
 
     /// <summary>
     /// Obté informació detallada d'un medicament humà per codi nacional
@@ -217,14 +209,11 @@ public class MedicinesController : ControllerBase
             });
         }
 
-        _logger.LogInformation("Obtenint medicament humà amb codi: {CnCode}", cnCode);
+        LogInformationGettingHumanMedicineByCode(cnCode);
 
         try
         {
-            var result = await _mediator.Send(new GetHumanMedicineByCodeQuery
-            {
-                CnCode = cnCode
-            }, cancellationToken);
+            var result = await mediator.Send(new GetHumanMedicineByCodeQuery(cnCode), cancellationToken);
 
             if (result == null)
             {
@@ -239,7 +228,7 @@ public class MedicinesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error obtenint medicament humà {CnCode}", cnCode);
+            LogErrorGettingHumanMedicineByCode(ex, cnCode);
             return StatusCode(503, new
             {
                 error = "Servei extern no disponible",
@@ -247,4 +236,9 @@ public class MedicinesController : ControllerBase
             });
         }
     }
+    [LoggerMessage(EventId = 1006, Level = LogLevel.Information, Message = "Obtenint medicament humà amb codi: {CnCode}")]
+    partial void LogInformationGettingHumanMedicineByCode(string cnCode);
+    [LoggerMessage(EventId = 1007, Level = LogLevel.Error, Message = "Error obtenint medicament humà {CnCode}")]
+    partial void LogErrorGettingHumanMedicineByCode(Exception ex, string cnCode);
+
 }
