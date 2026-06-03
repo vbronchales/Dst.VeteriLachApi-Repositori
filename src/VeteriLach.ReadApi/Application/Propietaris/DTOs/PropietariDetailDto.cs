@@ -3,32 +3,27 @@ namespace VeteriLach.ReadApi.Application.Propietaris.DTOs;
 /// <summary>
 /// DTO per a detall complet d'un propietari
 /// </summary>
-public class PropietariDetailDto
-{
-    public Guid IdPropietari { get; set; }
-    
+public record PropietariDetailDto(Guid IdPropietari,
     // Informació personal
-    public string Nom { get; set; } = string.Empty;
-    public string? Cognom1 { get; set; }
-    public string? Cognom2 { get; set; }
-    public string Cognoms { get; set; } = string.Empty;
-    public string? Nif { get; set; }
-    public DateTime? DataNaixement { get; set; }
-    public string? Email { get; set; }
-    public bool AmbWhatsApp { get; set; }
-    
-    // Adreça
-    public string? Adresa { get; set; }
-    public string? CodiPostal { get; set; }
-    public string? Poblacio { get; set; }
-    public string? Provincia { get; set; }
-    public string? Pais { get; set; }
-    
+    string Nom,
+    string? Cognom1,
+    string? Cognom2,
+    string Cognoms,
+    string? Nif,
+    DateTime? DataNaixement,
+    string? Email,
+    bool AmbWhatsApp,
+    string? Adresa,
+    string? CodiPostal,
+    string? Poblacio,
+    string? Provincia,
+    string? Pais)
+{    
     // Telèfons
-    public List<TelefonDto> Telefons { get; set; } = new();
+    public List<TelefonDto> Telefons { get; set; } = [];
     
     // Animals
-    public List<AnimalResumatDto> Animals { get; set; } = new();
+    public List<AnimalResumatDto> Animals { get; set; } = [];
     
     // Estat
     public bool Actiu { get; set; }
@@ -38,26 +33,9 @@ public class PropietariDetailDto
 /// <summary>
 /// DTO per a telèfon d'un propietari
 /// </summary>
-public class TelefonDto
-{
-    public string Numero { get; set; } = string.Empty;
-    public int TipusTelefon { get; set; }
-    public string TipusTelefonDescripcio { get; set; } = string.Empty;
-    public int Ordre { get; set; }
-    public string? Observacions { get; set; }
-}
+public record TelefonDto(string Numero, int TipusTelefon, string TipusTelefonDescripcio, int Ordre, string? Observacions);
 
 /// <summary>
 /// DTO resumit per a animals d'un propietari
 /// </summary>
-public class AnimalResumatDto
-{
-    public Guid IdAnimal { get; set; }
-    public string Nom { get; set; } = string.Empty;
-    public string Especie { get; set; } = string.Empty;
-    public string? Rasa { get; set; }
-    public string? Sexe { get; set; }
-    public DateTime? DataNaixement { get; set; }
-    public string? NumXip { get; set; }
-    public bool Castrat { get; set; }
-}
+public record AnimalResumatDto(Guid IdAnimal, string Nom, string Especie, string? Rasa, string? Sexe, DateTime? DataNaixement, string? NumXip, bool Castrat);
