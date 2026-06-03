@@ -4,41 +4,32 @@ using VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces;
 
 namespace VeteriLach.ReadApi.Application.Medicines.Queries;
 
+
+public record SearchVeterinaryMedicinesQuery(string Query, string? Species = null) : IRequest<List<VeterinaryMedicineDto>>;
+
 /// <summary>
 /// Handler per cercar medicaments veterinaris a CimaVet
 /// </summary>
-public class SearchVeterinaryMedicinesQueryHandler
+public partial class SearchVeterinaryMedicinesQueryHandler(ICimaVetService cimaVetService, ILogger<SearchVeterinaryMedicinesQueryHandler> logger)
     : IRequestHandler<SearchVeterinaryMedicinesQuery, List<VeterinaryMedicineDto>>
 {
-    private readonly ICimaVetService _cimaVetService;
-    private readonly ILogger<SearchVeterinaryMedicinesQueryHandler> _logger;
-
-    public SearchVeterinaryMedicinesQueryHandler(
-        ICimaVetService cimaVetService,
-        ILogger<SearchVeterinaryMedicinesQueryHandler> logger)
-    {
-        _cimaVetService = cimaVetService;
-        _logger = logger;
-    }
-
     public async Task<List<VeterinaryMedicineDto>> Handle(
         SearchVeterinaryMedicinesQuery request,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation(
-            "Executant SearchVeterinaryMedicinesQuery. Query: {Query}, Espècie: {Species}",
-            request.Query,
-            request.Species);
+        LogExecutingSearchVeterinaryMedicinesQuery(request.Query, request.Species);
 
-        var results = await _cimaVetService.SearchMedicinesAsync(
+        var results = await cimaVetService.SearchMedicinesAsync(
             request.Query,
             request.Species,
             cancellationToken);
 
-        _logger.LogInformation(
-            "Completat SearchVeterinaryMedicinesQuery. Trobats: {Count} medicaments",
-            results.Count);
+        LogCompletedSearchVeterinaryMedicinesQuery(results.Count);
 
         return results;
     }
+    [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Executant SearchVeterinaryMedicinesQuery. Query: {Query}, Espècie: {Species}")]
+    partial void LogExecutingSearchVeterinaryMedicinesQuery(string query, string? species);
+    [LoggerMessage(EventId = 2, Level = LogLevel.Information, Message = "Completat SearchVeterinaryMedicinesQuery. Trobats: {Count} medicaments")]
+    partial void LogCompletedSearchVeterinaryMedicinesQuery(int count);
 }

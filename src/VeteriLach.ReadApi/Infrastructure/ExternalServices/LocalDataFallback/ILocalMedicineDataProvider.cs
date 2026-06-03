@@ -9,20 +9,20 @@ public interface ILocalMedicineDataProvider<TDto> where TDto : class
     /// <summary>
     /// Cerca medicaments per nom al fitxer XML local
     /// </summary>
-    Task<List<TDto>> SearchByNameAsync(string query, CancellationToken cancellationToken = default);
+    public Task<List<TDto>> SearchByNameAsync(string query, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obté un medicament per codi de registre del fitxer XML local
     /// </summary>
-    Task<TDto?> GetByRegistrationNumberAsync(string registrationNumber, CancellationToken cancellationToken = default);
+    public  Task<TDto?> GetByRegistrationNumberAsync(string registrationNumber, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Cerca medicaments per principi actiu al fitxer XML local
     /// </summary>
-    Task<List<TDto>> SearchByActiveIngredientAsync(string activeIngredient, CancellationToken cancellationToken = default);
+    public Task<List<TDto>> SearchByActiveIngredientAsync(string activeIngredient, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Verifica si els fitxers XML locals estan disponibles
     /// </summary>
-    bool IsAvailable();
+    public bool IsAvailable();
 }

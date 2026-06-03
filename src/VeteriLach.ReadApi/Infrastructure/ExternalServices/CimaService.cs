@@ -6,6 +6,7 @@ using VeteriLach.ReadApi.Application.Medicines.DTOs;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.Models;
+using VeteriLach.ReadApi.Mapper;
 
 namespace VeteriLach.ReadApi.Infrastructure.ExternalServices;
 
@@ -291,7 +292,7 @@ public class CimaService : ICimaService
             searchResponse.Results.Count, searchResponse.TotalRows);
 
         // Mapejat de resultats de cerca a DTOs
-        var dtos = searchResponse.Results.Select(MapSearchResultToDto).ToList();
+        var dtos = searchResponse.Results.Select(r => r.MapSearchResultToDto()).ToList();
 
         return dtos;
     }
@@ -330,77 +331,7 @@ public class CimaService : ICimaService
             return null;
         }
 
-        return MapDetailToDto(detail);
-    }
-
-    /// <summary>
-    /// Mapeja un resultat de cerca resumit a DTO
-    /// </summary>
-    private HumanMedicineDto MapSearchResultToDto(CimaMedicineSearchResult result)
-    {
-        return new HumanMedicineDto
-        {
-            CnCode = result.RegistrationNumber,
-            Name = result.Name,
-            ActiveIngredient = result.Vtm?.Name ?? string.Empty,
-            PharmaceuticalForm = result.PharmaceuticalForm?.Name,
-            Dose = result.Dose,
-            AdministrationRoute = result.AdministrationRoutes.FirstOrDefault()?.Name,
-            Laboratory = result.Laboratory,
-            AuthorizationStatus = result.IsCommercialized ? "Comercialitzat" : "No comercialitzat",
-            PrescriptionRequired = result.RequiresPrescription,
-            IsGeneric = result.IsGeneric,
-            TechnicalDataSheetUrl = result.Documents.FirstOrDefault(d => d.Type == 1)?.UrlHtml,
-            PatientLeafletUrl = result.Documents.FirstOrDefault(d => d.Type == 2)?.UrlHtml,
-            LastUpdated = DateTime.UtcNow
-        };
-    }
-
-    /// <summary>
-    /// Mapeja un detall complet a DTO
-    /// </summary>
-    private HumanMedicineDto MapDetailToDto(CimaMedicineDetail detail)
-    {
-        DateTime? authDate = null;
-        if (detail.State?.AuthorizationTimestamp.HasValue == true)
-        {
-            authDate = DateTimeOffset.FromUnixTimeMilliseconds(detail.State.AuthorizationTimestamp.Value).DateTime;
-        }
-
-        // Construir cadena d'indicacions a partir dels ATCs si no hi ha camp específic
-        var indications = detail.Atcs.Count > 0 
-            ? string.Join("; ", detail.Atcs.Select(atc => atc.Name))
-            : null;
-
-        // Combinar principis actius amb quantitats
-        var activeIngredients = detail.ActivePrinciples.Count > 0
-            ? string.Join(" + ", detail.ActivePrinciples
-                .OrderBy(p => p.Order)
-                .Select(p => $"{p.Name} {p.Quantity} {p.Unit}"))
-            : detail.ActiveIngredients;
-
-        return new HumanMedicineDto
-        {
-            CnCode = detail.RegistrationNumber,
-            Name = detail.Name,
-            ActiveIngredient = activeIngredients,
-            PharmaceuticalForm = detail.PharmaceuticalForm?.Name,
-            Dose = detail.Dose,
-            AdministrationRoute = string.Join(", ", detail.AdministrationRoutes.Select(r => r.Name)),
-            Laboratory = detail.Laboratory,
-            AuthorizationStatus = detail.IsCommercialized ? "Comercialitzat" : "No comercialitzat",
-            AuthorizationDate = authDate,
-            Indications = indications,
-            PrescriptionRequired = detail.RequiresPrescription,
-            IsGeneric = detail.IsGeneric,
-            PricePvp = null, // L'API REST no proporciona preus directament
-            AffectedByReducedContribution = null,
-            TechnicalDataSheetUrl = detail.Documents.FirstOrDefault(d => d.Type == 1)?.UrlHtml 
-                                   ?? detail.Documents.FirstOrDefault(d => d.Type == 1)?.Url,
-            PatientLeafletUrl = detail.Documents.FirstOrDefault(d => d.Type == 2)?.UrlHtml
-                               ?? detail.Documents.FirstOrDefault(d => d.Type == 2)?.Url,
-            LastUpdated = DateTime.UtcNow
-        };
+        return detail.MapDetailToDto();
     }
 
     #endregion

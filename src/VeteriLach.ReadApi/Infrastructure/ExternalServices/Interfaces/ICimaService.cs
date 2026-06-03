@@ -13,9 +13,7 @@ public interface ICimaService
     /// <param name="query">Text de cerca</param>
     /// <param name="cancellationToken">Token de cancel·lació</param>
     /// <returns>Llista de medicaments trobats</returns>
-    Task<List<HumanMedicineDto>> SearchMedicinesAsync(
-        string query, 
-        CancellationToken cancellationToken = default);
+    public Task<List<HumanMedicineDto>> SearchMedicinesAsync( string query,  CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obté informació detallada d'un medicament humà per codi nacional
@@ -23,9 +21,7 @@ public interface ICimaService
     /// <param name="cnCode">Codi Nacional</param>
     /// <param name="cancellationToken">Token de cancel·lació</param>
     /// <returns>Informació del medicament o null si no es troba</returns>
-    Task<HumanMedicineDto?> GetMedicineByCodeAsync(
-        string cnCode, 
-        CancellationToken cancellationToken = default);
+    public Task<HumanMedicineDto?> GetMedicineByCodeAsync( string cnCode,  CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Cerca medicaments per principi actiu
@@ -33,7 +29,5 @@ public interface ICimaService
     /// <param name="activeIngredient">Principi actiu</param>
     /// <param name="cancellationToken">Token de cancel·lació</param>
     /// <returns>Llista de medicaments amb aquest principi actiu</returns>
-    Task<List<HumanMedicineDto>> SearchByActiveIngredientAsync(
-        string activeIngredient, 
-        CancellationToken cancellationToken = default);
+    public Task<List<HumanMedicineDto>> SearchByActiveIngredientAsync( string activeIngredient,  CancellationToken cancellationToken = default);
 }
