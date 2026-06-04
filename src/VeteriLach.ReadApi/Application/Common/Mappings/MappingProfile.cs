@@ -110,7 +110,7 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Castrat, opt => opt.MapFrom(src => src.Castrat));
 
         // ===== Historial Clínic =====
-        CreateMap<HosVisitum, VisitaResumatDto>()
+        CreateMap<HosVisitum, VisitaResumDto>()
             .ForMember(dest => dest.IdVisita, opt => opt.MapFrom(src => src.IdVisita))
             .ForMember(dest => dest.DiaVisita, opt => opt.MapFrom(src => src.DiaVisita))
             .ForMember(dest => dest.Veterinari, opt => opt.MapFrom(src => 

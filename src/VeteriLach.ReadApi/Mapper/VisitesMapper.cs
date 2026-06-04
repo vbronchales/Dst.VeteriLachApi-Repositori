@@ -6,9 +6,9 @@ namespace VeteriLach.ReadApi.Mapper
 {
     public static class VisitesMapper
     {
-        public static VisitaResumatDto ToVisitaResumatDto(this HosVisitum visita)
+        public static VisitaResumDto ToVisitaResumatDto(this HosVisitum visita)
         {
-            var visitaResumida = new VisitaResumatDto(
+            var visitaResumida = new VisitaResumDto(
                 visita.IdVisita, 
                 visita.DiaVisita, 
                 visita.IdDoctorNavigation?.IdDoctorNavigation?.Nom ?? "Desconegut", 

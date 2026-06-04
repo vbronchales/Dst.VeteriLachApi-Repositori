@@ -2,9 +2,9 @@ using FluentValidation;
 
 namespace VeteriLach.ReadApi.Application.MedicalHistory.Queries;
 
-public class GetAnimalVisitsListQueryValidator : AbstractValidator<GetAnimalVisitsListQuery>
+public class GetVisitsByAnimalIdQueryValidator : AbstractValidator<GetVisitsByAnimalIdQuery>
 {
-    public GetAnimalVisitsListQueryValidator()
+    public GetVisitsByAnimalIdQueryValidator()
     {
         RuleFor(x => x.IdAnimal)
             .NotEmpty().WithMessage("L'identificador de l'animal és obligatori.");

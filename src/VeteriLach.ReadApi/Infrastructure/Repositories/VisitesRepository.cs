@@ -1,5 +1,7 @@
 ﻿using Azure.Core;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 using VeteriLach.ReadApi.Application.Common.Models;
 using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
 using VeteriLach.ReadApi.Application.MedicalHistory.Services;
@@ -10,7 +12,7 @@ namespace VeteriLach.ReadApi.Infrastructure
 {
     public partial class VisitesRepository(VeteriLachDbContext context, ILogger<VisitesRepository> logger) : IVisitesRepository
     {
-        public async Task<PaginatedResult<VisitaResumatDto>> GetAnimalVisitsListAsync(Guid idAnimal, int pageNumber, int pageSize, DateTime? dataInici, DateTime? dataFi, CancellationToken cancellationToken)
+        public async Task<PaginatedResult<VisitaResumDto>> GetVisitsByIdAnimalAsync(Guid idAnimal, int pageNumber, int pageSize, DateTime? dataInici, DateTime? dataFi, CancellationToken cancellationToken)
         {
             // Buscar l'animal i les seves visites
             var query = context.HosVisita
@@ -47,7 +49,7 @@ namespace VeteriLach.ReadApi.Infrastructure
 
             LogResultatsObtenintVisites(visites.Count, totalItems, idAnimal);
 
-            return new PaginatedResult<VisitaResumatDto>(
+            return new PaginatedResult<VisitaResumDto>(
                 visites,
                 totalItems,
                 pageNumber,
@@ -84,7 +86,7 @@ namespace VeteriLach.ReadApi.Infrastructure
             if (seccionsTotal.Any())
             {
                 var resumGenerat = TextVisitaParserService.GenerarResum(seccionsTotal);
-                if(!string.IsNullOrEmpty(resumGenerat))
+                if (!string.IsNullOrEmpty(resumGenerat))
                 {
                     result.Resum = resumGenerat;
                 }
@@ -97,5 +99,37 @@ namespace VeteriLach.ReadApi.Infrastructure
 
         [LoggerMessage(EventId = 3, Level = LogLevel.Warning, Message = "Visita {IdVisita} no trobada")]
         partial void LogVisitaNoTrobada(Guid idVisita);
+
+
+        public async Task<PaginatedResult<VisitaResumDto>> GetRecentVisitsAsync(int days, int pageNumber, int pageSize, CancellationToken cancellationToken)
+        {
+            LogExecutantGetRecentVisitsQuery(days, pageNumber, pageSize);
+            // Calcular data límit
+            var dateLimit = DateTime.Now.AddDays(-days);
+            // Query base
+            var query = context.HosVisita
+                .Where(v => v.DiaVisita >= dateLimit)
+                .OrderByDescending(v => v.DiaVisita)
+                .AsNoTracking();
+            // Comptar total abans de paginar
+            var totalItems = await query.CountAsync(cancellationToken);
+            // Paginació i mapatge a DTO
+            var visits = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(v => v.ToVisitaResumatDto())
+                .ToListAsync(cancellationToken);
+            
+            LogResultatsObtenintVisites(visits.Count, totalItems, Guid.Empty); // Guid.Empty indica que no és per un animal específic
+            return new PaginatedResult<VisitaResumDto>(
+                visits,
+                totalItems,
+                pageNumber,
+                pageSize
+            );
+        }
+
+        [LoggerMessage(EventId = 4, Level = LogLevel.Information, Message = "Executant GetRecentVisitsQuery: Days={Days}, PageNumber={PageNumber}, PageSize={PageSize}")]
+        partial void LogExecutantGetRecentVisitsQuery(int days, int pageNumber, int pageSize);
     }
 }
