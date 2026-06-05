@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
+namespace VeteriLach.ReadApi.Domain.MedicalHistory;
 
 /// <summary>
 /// DTO per a proves diagnòstiques realitzades en una visita

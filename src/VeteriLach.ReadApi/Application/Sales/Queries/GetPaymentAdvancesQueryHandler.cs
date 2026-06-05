@@ -1,12 +1,11 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Sales.DTOs;
-using VeteriLach.ReadApi.Application.Sales.Queries;
 using VeteriLach.ReadApi.Infrastructure.Data;
 
-namespace VeteriLach.ReadApi.Application.Sales.Handlers;
+namespace VeteriLach.ReadApi.Application.Sales.Queries;
+
+public record GetPaymentAdvancesQuery(DateTime? StartDate = null, DateTime? EndDate = null, Guid? CustomerId = null, Guid? AnimalId = null, int PageNumber = 1, int PageSize = 50) : IRequest<List<PaymentAdvanceDto>>;
 
 public class GetPaymentAdvancesQueryHandler : IRequestHandler<GetPaymentAdvancesQuery, List<PaymentAdvanceDto>>
 {

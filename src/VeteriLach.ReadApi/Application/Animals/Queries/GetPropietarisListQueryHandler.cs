@@ -1,9 +1,9 @@
 using MediatR;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.Propietaris.DTOs;
+using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Infrastructure;
 
-namespace VeteriLach.ReadApi.Application.Propietaris.Queries;
+namespace VeteriLach.ReadApi.Application.Animals.Queries;
 
 public record GetPropietarisListQuery(string? SearchTerm, int PageNumber = 1, int PageSize = 20, string? Poblacio = null) : IRequest<PaginatedResult<PropietariListDto>>;
 

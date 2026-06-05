@@ -1,7 +1,7 @@
 using AutoMapper;
-using VeteriLach.ReadApi.Application.Animals.DTOs;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
 using VeteriLach.ReadApi.Application.Propietaris.DTOs;
+using VeteriLach.ReadApi.Domain.Animals;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 using VeteriLach.ReadApi.Infrastructure.Data.Entities;
 
 namespace VeteriLach.ReadApi.Application.Common.Mappings;

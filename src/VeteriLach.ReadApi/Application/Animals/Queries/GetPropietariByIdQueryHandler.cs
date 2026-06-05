@@ -1,8 +1,8 @@
 using MediatR;
-using VeteriLach.ReadApi.Application.Propietaris.DTOs;
+using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Infrastructure;
 
-namespace VeteriLach.ReadApi.Application.Propietaris.Queries;
+namespace VeteriLach.ReadApi.Application.Animals.Queries;
 
 public record GetPropietariByIdQuery(Guid IdPropietari) : IRequest<PropietariDetailDto?>;
 

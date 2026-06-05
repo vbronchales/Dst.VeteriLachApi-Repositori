@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Polly;
 using VeteriLach.ReadApi.Application.Common.Models;
 using VeteriLach.ReadApi.Application.Propietaris.DTOs;
+using VeteriLach.ReadApi.Domain.Animals;
 using VeteriLach.ReadApi.Infrastructure.Data;
 using VeteriLach.ReadApi.Mapper;
 

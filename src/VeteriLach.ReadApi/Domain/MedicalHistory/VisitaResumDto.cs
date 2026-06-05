@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
+namespace VeteriLach.ReadApi.Domain.MedicalHistory;
 
 /// <summary>
 /// DTO per a la llista paginada de visites d'un animal

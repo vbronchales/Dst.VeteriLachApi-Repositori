@@ -1,5 +1,6 @@
 ﻿using VeteriLach.ReadApi.Application.Common.Models;
 using VeteriLach.ReadApi.Application.Propietaris.DTOs;
+using VeteriLach.ReadApi.Domain.Animals;
 
 namespace VeteriLach.ReadApi.Infrastructure
 {

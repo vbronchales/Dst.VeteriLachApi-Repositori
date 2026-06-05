@@ -2,10 +2,11 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Sales.DTOs;
-using VeteriLach.ReadApi.Application.Sales.Queries;
 using VeteriLach.ReadApi.Infrastructure.Data;
 
-namespace VeteriLach.ReadApi.Application.Sales.Handlers;
+namespace VeteriLach.ReadApi.Application.Sales.Queries;
+
+public record GetSaleDetailQuery(Guid SaleId) : IRequest<SaleDetailDto?>;
 
 public class GetSaleDetailQueryHandler : IRequestHandler<GetSaleDetailQuery, SaleDetailDto?>
 {

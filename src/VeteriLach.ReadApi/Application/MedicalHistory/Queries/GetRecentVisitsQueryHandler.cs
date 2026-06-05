@@ -1,6 +1,6 @@
 using MediatR;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 using VeteriLach.ReadApi.Infrastructure;
 
 namespace VeteriLach.ReadApi.Application.MedicalHistory.Queries;

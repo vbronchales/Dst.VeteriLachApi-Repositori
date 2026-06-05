@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.Animals.DTOs;
+namespace VeteriLach.ReadApi.Domain.Animals;
 
 /// <summary>
 /// DTO per a la llista d'animals (versió resumida)

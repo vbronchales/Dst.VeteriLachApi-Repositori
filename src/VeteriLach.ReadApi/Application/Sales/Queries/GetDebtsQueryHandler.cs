@@ -1,12 +1,11 @@
-using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Sales.DTOs;
-using VeteriLach.ReadApi.Application.Sales.Queries;
 using VeteriLach.ReadApi.Infrastructure.Data;
 
-namespace VeteriLach.ReadApi.Application.Sales.Handlers;
+namespace VeteriLach.ReadApi.Application.Sales.Queries;
+
+public record GetDebtsQuery(Guid? CustomerId = null, int? MinimumDays = null, decimal? MinimumAmount = null, int PageNumber = 1, int PageSize = 50) : IRequest<List<DebtDto>>;
 
 public class GetDebtsQueryHandler : IRequestHandler<GetDebtsQuery, List<DebtDto>>
 {

@@ -1,6 +1,7 @@
 using FluentValidation;
+using VeteriLach.ReadApi.Application.Animals.Queries;
 
-namespace VeteriLach.ReadApi.Application.Propietaris.Queries;
+namespace VeteriLach.ReadApi.Application.Animals.Validators;
 
 /// <summary>
 /// Validador per a GetPropietarisListQuery

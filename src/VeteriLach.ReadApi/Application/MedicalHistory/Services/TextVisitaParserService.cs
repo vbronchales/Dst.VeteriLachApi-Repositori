@@ -1,4 +1,4 @@
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 
 namespace VeteriLach.ReadApi.Application.MedicalHistory.Services;
 

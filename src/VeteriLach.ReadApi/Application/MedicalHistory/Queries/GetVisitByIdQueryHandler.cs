@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
 using VeteriLach.ReadApi.Application.MedicalHistory.Services;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 using VeteriLach.ReadApi.Infrastructure;
 using VeteriLach.ReadApi.Infrastructure.Data;
 

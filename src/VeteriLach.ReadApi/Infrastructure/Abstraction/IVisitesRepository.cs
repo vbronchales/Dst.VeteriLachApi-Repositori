@@ -1,5 +1,5 @@
 ﻿using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 
 namespace VeteriLach.ReadApi.Infrastructure
 {

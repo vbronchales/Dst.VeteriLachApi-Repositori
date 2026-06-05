@@ -1,5 +1,5 @@
 using MediatR;
-using VeteriLach.ReadApi.Application.Animals.DTOs;
+using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Infrastructure;
 
 namespace VeteriLach.ReadApi.Application.Animals.Queries;

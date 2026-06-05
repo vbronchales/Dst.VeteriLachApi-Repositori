@@ -3,8 +3,8 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Polly;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
 using VeteriLach.ReadApi.Application.MedicalHistory.Services;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 using VeteriLach.ReadApi.Infrastructure.Data;
 using VeteriLach.ReadApi.Mapper;
 

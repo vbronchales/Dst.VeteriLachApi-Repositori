@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
 using VeteriLach.ReadApi.Application.MedicalHistory.Queries;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 
 namespace VeteriLach.ReadApi.Controllers;
 
