@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using VeteriLach.ReadApi.Application.Sales.DTOs;
 using VeteriLach.ReadApi.Application.Sales.Queries;
+using VeteriLach.ReadApi.Domain.Sales;
 
 namespace VeteriLach.ReadApi.Controllers;
 

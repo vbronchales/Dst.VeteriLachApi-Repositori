@@ -1,8 +1,8 @@
 using MediatR;
-using VeteriLach.ReadApi.Application.Metadata.DTOs;
+using VeteriLach.ReadApi.Domain.Animals;
 using VeteriLach.ReadApi.Infrastructure;
 
-namespace VeteriLach.ReadApi.Application.Metadata.Handlers;
+namespace VeteriLach.ReadApi.Application.Animals.Queries;
 
 public record GetEspeciesQuery : IRequest<List<EspecieDto>>;
 

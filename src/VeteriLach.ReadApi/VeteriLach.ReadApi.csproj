@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Application\Propietaris\Queries\" />
+    <Folder Include="Application\Sales\DTOs\" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using Polly;
 using Polly.Retry;
-using VeteriLach.ReadApi.Application.Medicines.DTOs;
+using VeteriLach.ReadApi.Domain.Medicines;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback;
 

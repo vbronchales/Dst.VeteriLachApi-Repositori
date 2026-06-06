@@ -1,13 +1,12 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.Sales.DTOs;
+using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Infrastructure;
-using VeteriLach.ReadApi.Infrastructure.Data;
 
 namespace VeteriLach.ReadApi.Application.Sales.Queries;
 
-public record GetSalesQuery(DateTime? StartDate = null, DateTime? EndDate = null, Guid? CustomerId = null, Guid? SellerId = null, Guid? AnimalId = null, bool? OnlyPending = null, bool? OnlyPaid = null, int PageNumber = 1, int PageSize = 50) : IRequest<PaginatedResult<SaleDto>>;
+public record GetSalesQuery(DateTime? StartDate = null, DateTime? EndDate = null, Guid? CustomerId = null, int PageNumber = 1, int PageSize = 50) : IRequest<PaginatedResult<SaleDto>>;
 
 public class GetSalesQueryHandler(ISalesRepository repository) : IRequestHandler<GetSalesQuery, PaginatedResult<SaleDto>>
 {

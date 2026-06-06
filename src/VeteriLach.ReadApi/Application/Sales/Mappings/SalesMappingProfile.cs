@@ -1,5 +1,5 @@
 using AutoMapper;
-using VeteriLach.ReadApi.Application.Sales.DTOs;
+using VeteriLach.ReadApi.Domain.Sales;
 using VeteriLach.ReadApi.Infrastructure.Data.Entities;
 
 namespace VeteriLach.ReadApi.Application.Sales.Mappings;

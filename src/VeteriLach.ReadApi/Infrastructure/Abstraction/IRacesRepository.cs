@@ -1,9 +1,10 @@
-﻿using VeteriLach.ReadApi.Application.Metadata.DTOs;
+﻿using VeteriLach.ReadApi.Application.Common.Models;
+using VeteriLach.ReadApi.Domain.Animals;
 
 namespace VeteriLach.ReadApi.Infrastructure
 {
     public interface IRacesRepository
     {
-        public Task<IEnumerable<RasaDto>> GetRaces(Guid IdEspecie, CancellationToken cancellationToken);
+        public Task<PaginatedResult<RasaDto>> GetRaces(Guid IdEspecie, CancellationToken cancellationToken);
     }
 }

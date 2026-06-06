@@ -1,9 +1,10 @@
-﻿using VeteriLach.ReadApi.Application.Metadata.DTOs;
+﻿using VeteriLach.ReadApi.Application.Common.Models;
+using VeteriLach.ReadApi.Domain.Animals;
 
 namespace VeteriLach.ReadApi.Infrastructure
 {
     public interface IEspecieRepository
     {
-        public Task<IEnumerable<EspecieDto>> GetEspecies(CancellationToken cancellationToken);
+        public Task<PaginatedResult<EspecieDto>> GetEspecies(CancellationToken cancellationToken);
     }
 }

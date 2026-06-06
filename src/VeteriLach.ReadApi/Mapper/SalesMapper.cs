@@ -1,13 +1,13 @@
-﻿using VeteriLach.ReadApi.Application.Sales.DTOs;
+﻿using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Infrastructure.Data.Entities;
 
 namespace VeteriLach.ReadApi.Mapper
 {
     public static class SalesMapper
     {
-        public static SaleDto ToSaleDto(this FacVendum venda)
+        public static DebtDto ToDebtDto(this FacVendum venda)
         {
-            return new SaleDto(
+            return new DebtDto(
                 venda.IdVenda,
                 venda.IdClient,
                 venda.IdClientNavigation?.NomClient,

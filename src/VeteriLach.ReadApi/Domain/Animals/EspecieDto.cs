@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.Metadata.DTOs;
+namespace VeteriLach.ReadApi.Domain.Animals;
 
 /// <summary>
 /// DTO per a espècies amb comptador d'animals

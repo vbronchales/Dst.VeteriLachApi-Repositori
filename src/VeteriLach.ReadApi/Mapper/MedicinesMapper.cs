@@ -1,4 +1,4 @@
-﻿using VeteriLach.ReadApi.Application.Medicines.DTOs;
+﻿using VeteriLach.ReadApi.Domain.Medicines;
 using VeteriLach.ReadApi.Infrastructure.ExternalServices.Models;
 
 namespace VeteriLach.ReadApi.Mapper

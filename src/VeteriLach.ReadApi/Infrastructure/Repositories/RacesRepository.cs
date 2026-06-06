@@ -1,13 +1,13 @@
-﻿using Azure.Core;
-using Microsoft.EntityFrameworkCore;
-using VeteriLach.ReadApi.Application.Metadata.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using VeteriLach.ReadApi.Application.Common.Models;
+using VeteriLach.ReadApi.Domain.Animals;
 using VeteriLach.ReadApi.Infrastructure.Data;
 
 namespace VeteriLach.ReadApi.Infrastructure
 {
     public partial class RacesRepository(VeteriLachDbContext context, ILogger<RacesRepository> logger) : IRacesRepository
     {
-        public async Task<IEnumerable<RasaDto>> GetRaces(Guid IdEspecie, CancellationToken cancellationToken)
+        public async Task<PaginatedResult<RasaDto>> GetRaces(Guid IdEspecie, CancellationToken cancellationToken)
         {
             LogGetRasesQuery(IdEspecie);
 
@@ -37,7 +37,7 @@ namespace VeteriLach.ReadApi.Infrastructure
 
             LogRacesFound(rases.Count);
 
-            return rases;
+            return new PaginatedResult<RasaDto>(rases, rases.Count, 1, rases.Count);
 
         }
 

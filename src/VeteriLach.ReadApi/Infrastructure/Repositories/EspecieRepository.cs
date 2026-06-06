@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using VeteriLach.ReadApi.Application.Metadata.DTOs;
+using VeteriLach.ReadApi.Application.Common.Models;
+using VeteriLach.ReadApi.Domain.Animals;
 using VeteriLach.ReadApi.Infrastructure.Data;
 
 namespace VeteriLach.ReadApi.Infrastructure
 {
     public partial class EspecieRepository(VeteriLachDbContext context, ILogger<EspecieRepository> logger) : IEspecieRepository
     {
-        public async Task<IEnumerable<EspecieDto>> GetEspecies(CancellationToken cancellationToken)
+        public async Task<PaginatedResult<EspecieDto>> GetEspecies(CancellationToken cancellationToken)
         {
             LogExecutingGetEspeciesQuery();
 
@@ -23,7 +24,7 @@ namespace VeteriLach.ReadApi.Infrastructure
 
             LogFoundEspecies(especies.Count);
 
-            return especies;
+            return new PaginatedResult<EspecieDto>(especies, especies.Count, 1, especies.Count);
         }
 
         [LoggerMessage(EventId = 1, Level = LogLevel.Information, Message = "Executant GetEspeciesQuery")]

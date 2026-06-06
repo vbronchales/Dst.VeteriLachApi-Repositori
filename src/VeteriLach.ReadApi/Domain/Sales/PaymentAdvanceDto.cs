@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.Sales.DTOs;
+namespace VeteriLach.ReadApi.Domain;
 
 /// <summary>
 /// DTO per pagaments a compte (acomptes)

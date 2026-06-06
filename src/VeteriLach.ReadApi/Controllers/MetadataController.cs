@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using VeteriLach.ReadApi.Application.Metadata.DTOs;
 using VeteriLach.ReadApi.Application.Metadata.Queries;
+using VeteriLach.ReadApi.Domain.Animals;
 
 namespace VeteriLach.ReadApi.Controllers;
 

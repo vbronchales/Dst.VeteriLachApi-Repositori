@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VeteriLach.ReadApi.Application.Medicines.Queries;
+using VeteriLach.ReadApi.Domain.Medicines;
 
 namespace VeteriLach.ReadApi.Controllers;
 
@@ -25,7 +26,7 @@ public partial class MedicinesController(IMediator mediator, ILogger<MedicinesCo
     /// <response code="503">Servei extern no disponible</response>
     [HttpGet]
     [Route("veterinary/search")]
-    [ProducesResponseType(typeof(List<Application.Medicines.DTOs.VeterinaryMedicineDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<VeterinaryMedicineDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
@@ -80,7 +81,7 @@ public partial class MedicinesController(IMediator mediator, ILogger<MedicinesCo
     /// <response code="503">Servei extern no disponible</response>
     [HttpGet]
     [Route("veterinary/{cnCode}")]
-    [ProducesResponseType(typeof(Application.Medicines.DTOs.VeterinaryMedicineDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(VeterinaryMedicineDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
@@ -139,7 +140,7 @@ public partial class MedicinesController(IMediator mediator, ILogger<MedicinesCo
     /// <response code="503">Servei extern no disponible</response>
     [HttpGet]
     [Route("human/search")]
-    [ProducesResponseType(typeof(List<Application.Medicines.DTOs.HumanMedicineDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<HumanMedicineDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
@@ -192,7 +193,7 @@ public partial class MedicinesController(IMediator mediator, ILogger<MedicinesCo
     /// <response code="503">Servei extern no disponible</response>
     [HttpGet]
     [Route("human/{cnCode}")]
-    [ProducesResponseType(typeof(Application.Medicines.DTOs.HumanMedicineDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(HumanMedicineDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]

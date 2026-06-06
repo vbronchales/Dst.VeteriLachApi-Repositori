@@ -4,6 +4,7 @@ using VeteriLach.ReadApi.Middleware;
 using VeteriLach.ReadApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Infrastructure;
+using VeteriLach.ReadApi.Domain.Medicines;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -124,9 +125,9 @@ try
 
 
     // ===== Registrar proveïdors de dades locals (XMLs) com a fallback =====
-    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.HumanMedicineDto>,
+    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<HumanMedicineDto>,
         VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaLocalDataProvider>();
-    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.VeterinaryMedicineDto>,
+    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeterinaryMedicineDto>,
         VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaVetLocalDataProvider>();
 
     // ===== Registrar serveis d'aplicació =====

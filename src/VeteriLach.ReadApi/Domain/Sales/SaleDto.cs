@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.Sales.DTOs;
+namespace VeteriLach.ReadApi.Domain;
 
 /// <summary>
 /// DTO per informació bàsica d'una venda

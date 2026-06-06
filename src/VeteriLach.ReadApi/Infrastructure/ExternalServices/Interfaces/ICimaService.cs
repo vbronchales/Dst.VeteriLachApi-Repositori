@@ -1,4 +1,4 @@
-using VeteriLach.ReadApi.Application.Medicines.DTOs;
+using VeteriLach.ReadApi.Domain.Medicines;
 
 namespace VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces;
 

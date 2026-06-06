@@ -1,4 +1,4 @@
-namespace VeteriLach.ReadApi.Application.Medicines.DTOs;
+namespace VeteriLach.ReadApi.Domain.Medicines;
 
 /// <summary>
 /// DTO per a medicaments humans (CIMA - Agencia Española de Medicamentos)
