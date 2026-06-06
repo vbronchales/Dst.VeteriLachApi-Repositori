@@ -5,31 +5,28 @@ namespace VeteriLach.ReadApi.Mapper
 {
     public static class SalesMapper
     {
-        public static DebtDto ToDebtDto(this FacVendum venda)
+        public static SaleDto ToSalesDto(this FacVendum venda)
         {
-            return new DebtDto(
+            var personaClient = venda.IdClientNavigation?.IdClientNavigation;
+            return new SaleDto(
                 venda.IdVenda,
                 venda.IdClient,
-                venda.IdClientNavigation?.NomClient,
+                personaClient?.GetFullName() ?? string.Empty,
+                venda.IdVenedor,
+                venda.IdVenedorNavigation?.IdVenedorNavigation?.GetFullName() ?? string.Empty,
                 venda.DiaVenda,
                 venda.TotalVenda,
                 venda.TotalPagat,
-                venda.IdVenedor,
-                venda.IdVenedorNavigation?.NomVenedor,
+                venda.TotalCanvi,
                 venda.IdCaixa,
-                venda.IdCaixaNavigation?.NomCaixa,
-                venda.IdReferencia,
-                venda.IdReferenciaNavigation?.NomReferencia,
-                venda.FacArticleVenuts.Select(av => new ArticleSoldDto
-                {
-                    Id = av.IdArticleVenut,
-                    ArticleId = av.IdArticle,
-                    ArticleName = av.IdArticleNavigation?.NomArticle,
-                    Quantity = av.Quantitat,
-                    UnitPrice = av.PreuUnitari,
-                    TotalPrice = av.PreuTotal
-                }).ToList()
-            );
+                venda.IdCaixaNavigation?.Nom ?? string.Empty,
+                venda.IdCaixaNavigation?.Efectiu ?? false,
+                venda.IdReferencia?? null,
+                venda.Referencia,
+                venda.Resum,
+                venda.Observacions,
+                venda.FacArticleVenuts.Count
+                );
         }
     }
 }
