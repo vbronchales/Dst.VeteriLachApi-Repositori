@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using VeteriLach.ReadApi.Application.Metadata.Queries;
+using VeteriLach.ReadApi.Application.Animals.Queries;
 using VeteriLach.ReadApi.Domain.Animals;
 
 namespace VeteriLach.ReadApi.Controllers;
@@ -43,7 +43,7 @@ public partial class MetadataController(IMediator mediator, ILogger<MetadataCont
     {
         LogInformationGettingRases(especie);
 
-        var query = new GetRasesQuery { Especie = especie };
+        var query = new GetRasesQuery(especie);
         var rases = await mediator.Send(query, cancellationToken);
 
         return Ok(rases);

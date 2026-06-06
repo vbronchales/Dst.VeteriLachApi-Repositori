@@ -1,10 +1,6 @@
-﻿
-using Azure.Core;
-using Microsoft.EntityFrameworkCore;
-using Polly;
+﻿using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.Propietaris.DTOs;
-using VeteriLach.ReadApi.Domain.Animals;
+using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Infrastructure.Data;
 using VeteriLach.ReadApi.Mapper;
 
@@ -40,7 +36,7 @@ namespace VeteriLach.ReadApi.Infrastructure
                 return null;
             }
 
-            LogPropietariTrobat(idPropietari, result.Animals.Count);
+            LogPropietariTrobat(idPropietari);
             return result;
         }
 
@@ -48,8 +44,8 @@ namespace VeteriLach.ReadApi.Infrastructure
         partial void LogObtenintDetallPropietari(Guid idPropietari);
         [LoggerMessage(EventId = 2, Level = LogLevel.Warning, Message = "Propietari {IdPropietari} no trobat")]
         partial void LogPropietariNoTrobat(Guid idPropietari);
-        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Propietari {IdPropietari} trobat amb {TotalAnimals} animals")]
-        partial void LogPropietariTrobat(Guid idPropietari, int totalAnimals);
+        [LoggerMessage(EventId = 3, Level = LogLevel.Information, Message = "Propietari {IdPropietari} trobat")]
+        partial void LogPropietariTrobat(Guid idPropietari);
 
         public async Task<PaginatedResult<PropietariListDto>> GetPropietarisListAsync(string? searchTerm, string? poblacio, int pageNumber, int pageSize, CancellationToken cancellationToken)
         {

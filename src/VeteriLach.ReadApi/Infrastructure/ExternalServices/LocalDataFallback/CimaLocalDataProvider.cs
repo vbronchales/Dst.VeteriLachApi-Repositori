@@ -134,7 +134,7 @@ public class CimaLocalDataProvider : ILocalMedicineDataProvider<HumanMedicineDto
                 IgnoreComments = true
             });
 
-            HumanMedicineDto? currentMedicine = null;
+            HumanMedicineDto currentMedicine = new HumanMedicineDto();
             string? currentElement = null;
 
             while (reader.Read())
@@ -151,7 +151,7 @@ public class CimaLocalDataProvider : ILocalMedicineDataProvider<HumanMedicineDto
                         currentMedicine = new HumanMedicineDto();
                     }
                 }
-                else if (reader.NodeType == XmlNodeType.Text && currentMedicine != null)
+                else if (reader.NodeType == XmlNodeType.Text)
                 {
                     var value = reader.Value?.Trim();
                     if (string.IsNullOrEmpty(value))

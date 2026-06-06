@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VeteriLach.ReadApi.Application.Common.Models;
+using VeteriLach.ReadApi.Domain;
 using VeteriLach.ReadApi.Domain.Animals;
 using VeteriLach.ReadApi.Infrastructure.Data;
 using VeteriLach.ReadApi.Mapper;

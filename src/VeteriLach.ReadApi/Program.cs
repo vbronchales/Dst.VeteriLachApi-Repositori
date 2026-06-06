@@ -130,9 +130,6 @@ try
     builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeterinaryMedicineDto>,
         VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaVetLocalDataProvider>();
 
-    // ===== Registrar serveis d'aplicació =====
-    builder.Services.AddScoped<VeteriLach.ReadApi.Application.MedicalHistory.Services.TextVisitaParserService>();
-
     // ===== Registrar serveis externs (CimaVet i CIMA amb fallback a XMLs locals) =====
     builder.Services.AddScoped<VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces.ICimaVetService,
         VeteriLach.ReadApi.Infrastructure.ExternalServices.CimaVetService>();

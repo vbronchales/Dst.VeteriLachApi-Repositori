@@ -155,6 +155,7 @@ public class CimaService : ICimaService
             {
                 return await GetMedicineDetailFromApiAsync(cnCode, cancellationToken);
             });
+            
 
             // Si API no retorna res, provar amb dades locals
             if (result == null && _localDataProvider.IsAvailable())
