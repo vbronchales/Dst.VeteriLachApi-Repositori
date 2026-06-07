@@ -97,7 +97,7 @@ namespace VeteriLach.ReadApi.Infrastructure
 
             return new PaginatedResult<PropietariListDto>
             {
-                Data = propietaris,
+                Data = propietaris!,
                 Pagination = new PaginationMetadata
                 {
                     CurrentPage = pageNumber,

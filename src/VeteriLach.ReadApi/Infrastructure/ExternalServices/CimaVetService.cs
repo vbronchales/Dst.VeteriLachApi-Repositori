@@ -271,38 +271,22 @@ public class CimaVetService : ICimaVetService
     {
         var mockData = new List<VeterinaryMedicineDto>
         {
-            new()
-            {
-                CnCode = "123456",
-                CommercialName = "Metacam 5mg/ml Suspensió Oral per a Gossos",
-                ActiveIngredient = "Meloxicam",
-                Concentration = "5 mg/ml",
-                PharmaceuticalForm = "Suspensió oral",
-                TargetSpecies = new List<string> { "Gos" },
-                TherapeuticIndications = "Alleujament del dolor i la inflamació en trastorns musculoesquelètics aguts i crònics.",
-                Dosage = "Dosi inicial: 0.2 mg/kg pes corporal. Dosi de manteniment: 0.1 mg/kg un cop al dia.",
-                Contraindications = "No utilitzar en animals amb hipersensibilitat al meloxicam. No utilitzar en gats.",
-                Laboratory = "Boehringer Ingelheim",
-                PrescriptionRequired = true,
-                PackageSizes = new List<string> { "15 ml", "32 ml", "100 ml" },
-                LastUpdated = DateTime.UtcNow.AddDays(-30)
-            },
-            new()
-            {
-                CnCode = "789012",
-                CommercialName = "Frontline Combo Gos",
-                ActiveIngredient = "Fipronil + (S)-metoprè",
-                Concentration = "Fipronil 100 mg/ml + (S)-metoprè 90 mg/ml",
-                PharmaceuticalForm = "Solució spot-on",
-                TargetSpecies = new List<string> { "Gos" },
-                TherapeuticIndications = "Tractament i prevenció d'infestacions per puces i paparres.",
-                Dosage = "Aplicar una pipeta segons el pes de l'animal. Repetir mensualment.",
-                Contraindications = "No utilitzar en animals malalts o convalescents.",
-                Laboratory = "Boehringer Ingelheim",
-                PrescriptionRequired = false,
-                PackageSizes = new List<string> { "XS (2-10kg)", "S (10-20kg)", "M (20-40kg)", "L (40-60kg)" },
-                LastUpdated = DateTime.UtcNow.AddDays(-15)
-            }
+            new(
+                "123456","Metacam 5mg/ml Suspensió Oral per a Gossos","Meloxicam","5 mg/ml","Suspensió oral",
+            new List<string> { "Gos" },"Alleujament del dolor i la inflamació en trastorns musculoesquelètics aguts i crònics.",
+            "Dosi inicial: 0.2 mg/kg pes corporal. Dosi de manteniment: 0.1 mg/kg un cop al dia.",
+            "No utilitzar en animals amb hipersensibilitat al meloxicam. No utilitzar en gats.",
+            "Boehringer Ingelheim",true, new WithdrawalPeriodDto(10,10,10),
+            new List<string> { "15 ml", "32 ml", "100 ml" },DateTime.UtcNow.AddDays(-30)
+            ),
+            new(
+                "789012","Frontline Combo Gos","Fipronil + (S)-metoprè","Fipronil 100 mg/ml + (S)-metoprè 90 mg/ml","Solució spot-on",
+            new List<string> { "Gos" },"Tractament i prevenció d'infestacions per puces i paparres.",
+            "Aplicar una pipeta segons el pes de l'animal. Repetir mensualment.",
+            "No utilitzar en animals malalts o convalescents.",
+            "Boehringer Ingelheim", false, new WithdrawalPeriodDto(10,10,10),
+            new List<string> { "XS (2-10kg)", "S (10-20kg)", "M (20-40kg)", "L (40-60kg)" },
+            DateTime.UtcNow.AddDays(-15))
         };
 
         // Filtrar per query i espècie
@@ -329,21 +313,17 @@ public class CimaVetService : ICimaVetService
         if (cnCode == "123456")
         {
             return Task.FromResult<VeterinaryMedicineDto?>(new VeterinaryMedicineDto
-            {
-                CnCode = "123456",
-                CommercialName = "Metacam 5mg/ml Suspensió Oral per a Gossos",
-                ActiveIngredient = "Meloxicam",
-                Concentration = "5 mg/ml",
-                PharmaceuticalForm = "Suspensió oral",
-                TargetSpecies = new List<string> { "Gos" },
-                TherapeuticIndications = "Alleujament del dolor i la inflamació en trastorns musculoesquelètics aguts i crònics.",
-                Dosage = "Dosi inicial: 0.2 mg/kg pes corporal el primer dia. Dosi de manteniment: 0.1 mg/kg un cop al dia.",
-                Contraindications = "No utilitzar en animals amb hipersensibilitat al meloxicam. No utilitzar en gats.",
-                Laboratory = "Boehringer Ingelheim",
-                PrescriptionRequired = true,
-                PackageSizes = new List<string> { "15 ml", "32 ml", "100 ml" },
-                LastUpdated = DateTime.UtcNow.AddDays(-30)
-            });
+                ("123456", "Metacam 5mg/ml Suspensió Oral per a Gossos", "Meloxicam", "5 mg/ml", "Suspensió oral", 
+                new List<string> { "Gos" }, "Alleujament del dolor i la inflamació en trastorns musculoesquelètics aguts i crònics.",
+                "Dosi inicial: 0.2 mg/kg pes corporal el primer dia. Dosi de manteniment: 0.1 mg/kg un cop al dia.",
+                "No utilitzar en animals amb hipersensibilitat al meloxicam. No utilitzar en gats.",
+                "Boehringer Ingelheim",
+                true,
+                new WithdrawalPeriodDto(10,10,10),
+                new List<string> { "15 ml", "32 ml", "100 ml" },
+                DateTime.UtcNow.AddDays(-30)
+                )
+            );
         }
 
         return Task.FromResult<VeterinaryMedicineDto?>(null);
@@ -357,17 +337,21 @@ public class CimaVetService : ICimaVetService
         {
             return Task.FromResult(new List<VeterinaryMedicineDto>
             {
-                new()
-                {
-                    CnCode = "123456",
-                    CommercialName = "Metacam 5mg/ml Suspensió Oral per a Gossos",
-                    ActiveIngredient = "Meloxicam",
-                    Concentration = "5 mg/ml",
-                    PharmaceuticalForm = "Suspensió oral",
-                    TargetSpecies = new List<string> { "Gos" },
-                    PrescriptionRequired = true,
-                    Laboratory = "Boehringer Ingelheim"
-                }
+                new("123456",
+                    "Metacam 5mg/ml Suspensió Oral per a Gossos",
+                    "Meloxicam",
+                    "5 mg/ml",
+                    "Suspensió oral",
+                    new List<string> { "Gos" },
+                    "Alleujament del dolor i la inflamació en trastorns musculoesquelètics aguts i crònics.",
+                    "Dosi inicial: 0.2 mg/kg pes corporal el primer dia. Dosi de manteniment: 0.1 mg/kg un cop al dia.",
+                    "No utilitzar en animals amb hipersensibilitat al meloxicam. No utilitzar en gats.",
+                    "Boehringer Ingelheim",
+                    true,
+                    new WithdrawalPeriodDto(10,10,10),
+                    new List<string> { "15 ml", "32 ml", "100 ml" },
+                    DateTime.UtcNow.AddDays(-30)
+                )
             });
         }
 

@@ -1,10 +1,11 @@
 using FluentValidation;
-using Serilog;
-using VeteriLach.ReadApi.Middleware;
-using VeteriLach.ReadApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using VeteriLach.ReadApi.Infrastructure;
+using Microsoft.OpenApi;
+using Serilog;
 using VeteriLach.ReadApi.Domain.Medicines;
+using VeteriLach.ReadApi.Infrastructure;
+using VeteriLach.ReadApi.Infrastructure.Data;
+using VeteriLach.ReadApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -57,12 +58,12 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
-        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        options.SwaggerDoc("v1", new OpenApiInfo
         {
             Title = "VeteriLach Read API",
             Version = "v1",
             Description = "API REST de Consulta per a Integració MCP amb IA - Només Lectura",
-            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            Contact = new OpenApiContact
             {
                 Name = "VeteriLach Team",
                 Email = "info@veterilach.com"
@@ -70,28 +71,39 @@ try
         });
 
         // Afegir suport per a API Key al Swagger UI
-        options.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
         {
-            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
             Name = "X-API-Key",
             Description = "API Key per autenticar-se. Contacti amb l'administrador per obtenir una clau."
         });
 
-        options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-        {
-            {
-                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                    {
-                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                        Id = "ApiKey"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
+
+        //options.AddSecurityDefinition("[auth scheme: same name as defined for asp.net]", new ApiKeyScheme()
+        //{
+        //    In = "header", // where to find apiKey, probably in a header
+        //    Name = "X-API-KEY", //header with api key
+        //    Type = "apiKey", // this value is always "apiKey"
+        //});
+
+        //options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        //{
+        //    {
+        //        new OpenApiSecurityScheme
+        //        {
+        //            [new OpenApiSecuritySchemeReference("bearer", document)] = []
+
+
+        //            Reference = new OpenApiReference
+        //            {
+        //                Type = ReferenceType.SecurityScheme,
+        //                Id = "ApiKey"
+        //            }
+        //        },
+        //        Array.Empty<string>()
+        //    }
+        //});
     });
 
     // ===== Configurar Entity Framework Core =====
