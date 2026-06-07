@@ -10,6 +10,7 @@
             services.AddScoped<IRacesRepository, RacesRepository>();
             services.AddScoped<IEspecieRepository, EspecieRepository>();
             services.AddScoped<IPropietariRepository, PropietariRepository>();
+            services.AddScoped<ISalesRepository, SalesRepository>();
 
             return services;
         }
