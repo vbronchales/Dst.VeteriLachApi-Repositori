@@ -12,6 +12,8 @@ namespace VeteriLach.ReadApi.Infrastructure
             LogExecutingGetEspeciesQuery();
 
             var especies = await context.VetEspecies
+                .Include(e => e.VetRasas)
+                    .ThenInclude(r => r.VetAnimals)
                 .Select(e => new EspecieDto(
                     e.IdEspecie,
                     e.Nom,
