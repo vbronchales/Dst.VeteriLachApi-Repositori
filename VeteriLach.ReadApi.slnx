@@ -1,5 +1,12 @@
 <Solution>
+  <Folder Name="/mcp/">
+    <Project Path="mcp-server-https/VeteriLach.McpServer.Https.csproj" />
+    <Project Path="mcp-server-stdio/VeteriLach.McpServer.Stdio.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/VeteriLach.ReadApi/VeteriLach.ReadApi.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/VeteriLach.ReadApi.Tests/VeteriLach.ReadApi.Tests.csproj" Id="303baba2-5874-41a2-bd09-564cbd3aa640" />
   </Folder>
 </Solution>

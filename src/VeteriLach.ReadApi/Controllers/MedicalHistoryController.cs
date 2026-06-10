@@ -1,29 +1,22 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using VeteriLach.ReadApi.Application.Common.Models;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
 using VeteriLach.ReadApi.Application.MedicalHistory.Queries;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 
 namespace VeteriLach.ReadApi.Controllers;
 
 /// <summary>
-/// Controller per gestionar l'historial clínic dels animals
+/// Controlador per gestionar les visites mèdiques dels animals, incloent la consulta de l'historial mèdic i el detall de cada visita.
 /// </summary>
+/// <param name="mediator"></param>
+/// <param name="logger"></param>
 [ApiController]
 [Route("api/animals/{idAnimal}/visits")]
 [Route("api/visits")]
 [Produces("application/json")]
-public class MedicalHistoryController : ControllerBase
+public partial class MedicalHistoryController(IMediator mediator, ILogger<MedicalHistoryController> logger) : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly ILogger<MedicalHistoryController> _logger;
-
-    public MedicalHistoryController(IMediator mediator, ILogger<MedicalHistoryController> logger)
-    {
-        _mediator = mediator;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Obté la llista paginada de visites d'un animal
     /// </summary>
@@ -35,7 +28,7 @@ public class MedicalHistoryController : ControllerBase
     /// <returns>Llista paginada de visites</returns>
     [HttpGet]
     [Route("/api/animals/{idAnimal}/visits")]
-    [ProducesResponseType(typeof(PaginatedResult<VisitaResumatDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PaginatedResult<VisitaResumDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAnimalVisits(
         Guid idAnimal,
@@ -44,7 +37,7 @@ public class MedicalHistoryController : ControllerBase
         [FromQuery] DateTime? dataInici = null,
         [FromQuery] DateTime? dataFi = null)
     {
-        var query = new GetAnimalVisitsListQuery(idAnimal)
+        var query = new GetVisitsByAnimalIdQuery(idAnimal)
         {
             PageNumber = pageNumber,
             PageSize = pageSize,
@@ -52,10 +45,9 @@ public class MedicalHistoryController : ControllerBase
             DataFi = dataFi
         };
 
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
 
-        _logger.LogInformation("Retornades {Count} visites de {Total} per animal {IdAnimal}",
-            result.Data.Count, result.Pagination.TotalItems, idAnimal);
+        LogAnimalVisitsReturned(result.Data.Count, result.Pagination.TotalItems, idAnimal);
 
         return Ok(result);
     }
@@ -72,15 +64,55 @@ public class MedicalHistoryController : ControllerBase
     public async Task<IActionResult> GetVisit(Guid id)
     {
         var query = new GetVisitByIdQuery(id);
-        var result = await _mediator.Send(query);
+        var result = await mediator.Send(query);
 
         if (result == null)
         {
-            _logger.LogWarning("Visita {IdVisita} no trobada", id);
+            LogVisitNotFound(id);
             return NotFound(new { message = $"No s'ha trobat cap visita amb l'identificador {id}." });
         }
 
-        _logger.LogInformation("Retornat detall de visita {IdVisita}", id);
+        LogVisitReturned(id);
         return Ok(result);
     }
+
+    [LoggerMessage(EventId = 1001, Level = LogLevel.Information, Message = "Retornades {Count} visites de {Total} per animal {IdAnimal}")]
+    partial void LogAnimalVisitsReturned(int count, int total, Guid idAnimal);
+    [LoggerMessage(EventId = 1002, Level = LogLevel.Warning, Message = "Visita {IdVisita} no trobada")]
+    partial void LogVisitNotFound(Guid idVisita);
+    [LoggerMessage(EventId = 1003, Level = LogLevel.Information, Message = "Retornat detall de visita {IdVisita}")]
+    partial void LogVisitReturned(Guid idVisita);
+
+    /// <summary>
+    /// Obté les visites més recents ordenades per data descendent
+    /// </summary>
+    /// <param name="days">Nombre de dies enrere (default: 7, max: 90)</param>
+    /// <param name="pageNumber">Número de pàgina (default: 1)</param>
+    /// <param name="pageSize">Elements per pàgina (default: 20, max: 100)</param>
+    /// <param name="includeAnimalInfo">Incloure informació d'animal i propietari (default: true)</param>
+    /// <param name="cancellationToken">Token de cancel·lació</param>
+    /// <returns>Llista de visites recents</returns>
+    [HttpGet("recent")]
+    [ProducesResponseType(typeof(PaginatedResult<VisitaResumDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecentVisits(
+    [FromQuery] int days = 7,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 20,
+    [FromQuery] bool includeAnimalInfo = true,
+    CancellationToken cancellationToken = default)
+    {
+        // Validar límits
+        if (days > 90) days = 90;
+        if (days < 1) days = 1;
+        if (pageSize > 100) pageSize = 100;
+        if (pageSize < 1) pageSize = 1;
+        if (pageNumber < 1) pageNumber = 1;
+
+        var query = new GetRecentVisitsQuery(days, pageNumber, pageSize);
+
+        var visits = await mediator.Send(query, cancellationToken);
+
+        return Ok(visits);
+    }
+
 }

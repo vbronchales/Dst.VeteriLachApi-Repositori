@@ -1,6 +1,6 @@
 using System.Xml;
 using Microsoft.Extensions.Caching.Memory;
-using VeteriLach.ReadApi.Application.Medicines.DTOs;
+using VeteriLach.ReadApi.Domain.Medicines;
 
 namespace VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback;
 
@@ -54,8 +54,8 @@ public class CimaLocalDataProvider : ILocalMedicineDataProvider<HumanMedicineDto
 
         // Filtrar per query
         var results = allMedicines.Where(m =>
-            m.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
-            m.ActiveIngredient.Contains(query, StringComparison.OrdinalIgnoreCase)
+            (m.Name?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false) ||
+            (m.ActiveIngredient?.Contains(query, StringComparison.OrdinalIgnoreCase) ?? false)
         ).Take(25).ToList();
 
         _logger.LogInformation("Trobats {Count} medicaments en XML local per '{Query}'", results.Count, query);
@@ -134,7 +134,7 @@ public class CimaLocalDataProvider : ILocalMedicineDataProvider<HumanMedicineDto
                 IgnoreComments = true
             });
 
-            HumanMedicineDto? currentMedicine = null;
+            var currentMedicine = new HumanMedicineDto();
             string? currentElement = null;
 
             while (reader.Read())

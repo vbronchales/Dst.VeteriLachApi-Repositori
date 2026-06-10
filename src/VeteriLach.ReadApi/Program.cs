@@ -1,8 +1,11 @@
 using FluentValidation;
-using Serilog;
-using VeteriLach.ReadApi.Middleware;
-using VeteriLach.ReadApi.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
+using Serilog;
+using VeteriLach.ReadApi.Domain.Medicines;
+using VeteriLach.ReadApi.Infrastructure;
+using VeteriLach.ReadApi.Infrastructure.Data;
+using VeteriLach.ReadApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,12 +58,12 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
-        options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+        options.SwaggerDoc("v1", new OpenApiInfo
         {
             Title = "VeteriLach Read API",
             Version = "v1",
             Description = "API REST de Consulta per a Integració MCP amb IA - Només Lectura",
-            Contact = new Microsoft.OpenApi.Models.OpenApiContact
+            Contact = new OpenApiContact
             {
                 Name = "VeteriLach Team",
                 Email = "info@veterilach.com"
@@ -68,28 +71,39 @@ try
         });
 
         // Afegir suport per a API Key al Swagger UI
-        options.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+        options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
         {
-            Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
-            In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            Type = SecuritySchemeType.ApiKey,
+            In = ParameterLocation.Header,
             Name = "X-API-Key",
             Description = "API Key per autenticar-se. Contacti amb l'administrador per obtenir una clau."
         });
 
-        options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-        {
-            {
-                new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-                {
-                    Reference = new Microsoft.OpenApi.Models.OpenApiReference
-                    {
-                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-                        Id = "ApiKey"
-                    }
-                },
-                Array.Empty<string>()
-            }
-        });
+
+        //options.AddSecurityDefinition("[auth scheme: same name as defined for asp.net]", new ApiKeyScheme()
+        //{
+        //    In = "header", // where to find apiKey, probably in a header
+        //    Name = "X-API-KEY", //header with api key
+        //    Type = "apiKey", // this value is always "apiKey"
+        //});
+
+        //options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        //{
+        //    {
+        //        new OpenApiSecurityScheme
+        //        {
+        //            [new OpenApiSecuritySchemeReference("bearer", document)] = []
+
+
+        //            Reference = new OpenApiReference
+        //            {
+        //                Type = ReferenceType.SecurityScheme,
+        //                Id = "ApiKey"
+        //            }
+        //        },
+        //        Array.Empty<string>()
+        //    }
+        //});
     });
 
     // ===== Configurar Entity Framework Core =====
@@ -109,9 +123,6 @@ try
         cfg.AddOpenBehavior(typeof(VeteriLach.ReadApi.Application.Common.Behaviors.LoggingBehavior<,>));
     });
 
-    // ===== Configurar AutoMapper =====
-    builder.Services.AddAutoMapper(typeof(Program).Assembly);
-
     // ===== Configurar FluentValidation =====
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
@@ -121,14 +132,15 @@ try
     // ===== Configurar HttpClient Factory per a serveis externs =====
     builder.Services.AddHttpClient();
 
-    // ===== Registrar proveïdors de dades locals (XMLs) com a fallback =====
-    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.HumanMedicineDto>,
-        VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaLocalDataProvider>();
-    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeteriLach.ReadApi.Application.Medicines.DTOs.VeterinaryMedicineDto>,
-        VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaVetLocalDataProvider>();
+    builder.Services.AddInfrastructure(builder.Configuration);
 
-    // ===== Registrar serveis d'aplicació =====
-    builder.Services.AddScoped<VeteriLach.ReadApi.Application.MedicalHistory.Services.TextVisitaParserService>();
+
+
+    // ===== Registrar proveïdors de dades locals (XMLs) com a fallback =====
+    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<HumanMedicineDto>,
+        VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaLocalDataProvider>();
+    builder.Services.AddSingleton<VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.ILocalMedicineDataProvider<VeterinaryMedicineDto>,
+        VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback.CimaVetLocalDataProvider>();
 
     // ===== Registrar serveis externs (CimaVet i CIMA amb fallback a XMLs locals) =====
     builder.Services.AddScoped<VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces.ICimaVetService,

@@ -1,52 +1,35 @@
-using AutoMapper;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
-using VeteriLach.ReadApi.Application.Animals.DTOs;
-using VeteriLach.ReadApi.Infrastructure.Data;
+using VeteriLach.ReadApi.Domain;
+using VeteriLach.ReadApi.Infrastructure;
 
 namespace VeteriLach.ReadApi.Application.Animals.Queries;
 
-public class GetAnimalByIdQueryHandler : IRequestHandler<GetAnimalByIdQuery, AnimalDetailDto?>
+public record GetAnimalByIdQuery(Guid IdAnimal) : IRequest<AnimalDetailDto?>;
+
+public partial class GetAnimalByIdQueryHandler( IAnimalRepository repository, ILogger<GetAnimalByIdQueryHandler> logger) : IRequestHandler<GetAnimalByIdQuery, AnimalDetailDto?>
 {
-    private readonly VeteriLachDbContext _context;
-    private readonly IMapper _mapper;
-    private readonly ILogger<GetAnimalByIdQueryHandler> _logger;
-
-    public GetAnimalByIdQueryHandler(
-        VeteriLachDbContext context,
-        IMapper mapper,
-        ILogger<GetAnimalByIdQueryHandler> logger)
-    {
-        _context = context;
-        _mapper = mapper;
-        _logger = logger;
-    }
-
     public async Task<AnimalDetailDto?> Handle(GetAnimalByIdQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Obtenint detall de l'animal {IdAnimal}", request.IdAnimal);
+        LogGettingAnimalDetail(request.IdAnimal);
 
-        var animal = await _context.VetAnimals
-            .Include(a => a.IdAnimalNavigation)
-                .ThenInclude(p => p.IdPacient1)
-            .Include(a => a.IdRasaNavigation)
-                .ThenInclude(r => r.IdEspecieNavigation)
-            .Include(a => a.IdPropietariNavigation)
-                .ThenInclude(p => p.IdPropietari1)
-                    .ThenInclude(s => s.SlcTelefons)
-            .Where(a => a.IdAnimal == request.IdAnimal)
-            .FirstOrDefaultAsync(cancellationToken);
-
+        var animal = await repository.GetAnimalById(request.IdAnimal, cancellationToken);
+        
         if (animal == null)
         {
-            _logger.LogWarning("Animal amb ID {IdAnimal} no trobat", request.IdAnimal);
+            LogAnimalNotFound(request.IdAnimal);
             return null;
         }
 
-        _logger.LogInformation("Animal {IdAnimal} recuperat correctament: {Nom}", 
-            request.IdAnimal, animal.IdAnimalNavigation.IdPacient1.Nom);
-
-        // Utilitzar AutoMapper per mapejar l'entitat al DTO
-        return _mapper.Map<AnimalDetailDto>(animal);
+        LogAnimalRetrieved(request.IdAnimal, animal.Nom);
+        return animal;
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Getting details for animal {IdAnimal}")]
+    private partial void LogGettingAnimalDetail(Guid IdAnimal);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Animal {IdAnimal} not found")]
+    private partial void LogAnimalNotFound(Guid IdAnimal);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Animal {IdAnimal} retrieved successfully: {Nom}")]
+    private partial void LogAnimalRetrieved(Guid IdAnimal, string Nom);
 }

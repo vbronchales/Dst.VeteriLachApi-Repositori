@@ -1,17 +1,16 @@
-using System.Text.RegularExpressions;
-using VeteriLach.ReadApi.Application.MedicalHistory.DTOs;
+using VeteriLach.ReadApi.Domain.MedicalHistory;
 
 namespace VeteriLach.ReadApi.Application.MedicalHistory.Services;
 
 /// <summary>
 /// Servei per parsejar i estructurar el text de les visites clíniques
 /// </summary>
-public class TextVisitaParserService
+public static class TextVisitaParserService
 {
     /// <summary>
     /// Parseja un text de visita i intenta extreure'n les seccions estructurades
     /// </summary>
-    public SeccioTextVisitaDto ParsejarText(string textPla)
+    public static SeccioTextVisitaDto ParsejarText(string textPla)
     {
         if (string.IsNullOrWhiteSpace(textPla))
         {
@@ -31,7 +30,7 @@ public class TextVisitaParserService
             "medicació", "medicacion", "recomanacions", "recomendaciones" };
 
         // Intentar detectar seccions per paraules clau
-        var linees = textPla.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        var linees = textMinuscules.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
         var seccioActual = "";
         var contingutActual = new List<string>();
 
@@ -116,88 +115,81 @@ public class TextVisitaParserService
     /// <summary>
     /// Combina múltiples textos i genera un resum estructurat
     /// </summary>
-    public string GenerarResum(IEnumerable<SeccioTextVisitaDto> seccions)
+    public static string GenerarResum(IEnumerable<SeccioTextVisitaDto?> seccions)
     {
         var resumParts = new List<string>();
 
         // Combinar totes les seccions de tipus Motiu
         var motius = seccions
-            .Where(s => !string.IsNullOrWhiteSpace(s.Motiu))
-            .Select(s => s.Motiu)
+            .Where(s => s != null && !string.IsNullOrWhiteSpace(s?.Motiu))
+            .Select(s => s?.Motiu)
             .ToList();
         
-        if (motius.Any())
+        if (motius.Count != 0)
         {
             resumParts.Add($"Motiu: {string.Join("; ", motius)}");
         }
 
         // Combinar exploracions
         var exploracions = seccions
-            .Where(s => !string.IsNullOrWhiteSpace(s.Exploracio))
-            .Select(s => s.Exploracio)
+            .Where(s => s != null && !string.IsNullOrWhiteSpace(s?.Exploracio))
+            .Select(s => s?.Exploracio)
             .ToList();
         
-        if (exploracions.Any())
+        if (exploracions.Count != 0)
         {
             resumParts.Add($"Exploració: {string.Join("; ", exploracions)}");
         }
 
         // Combinar diagnòstics
         var diagnostics = seccions
-            .Where(s => !string.IsNullOrWhiteSpace(s.Diagnostic))
-            .Select(s => s.Diagnostic)
+            .Where(s => s != null && !string.IsNullOrWhiteSpace(s?.Diagnostic))
+            .Select(s => s?.Diagnostic)
             .ToList();
         
-        if (diagnostics.Any())
+        if (diagnostics.Count != 0)
         {
             resumParts.Add($"Diagnòstic: {string.Join("; ", diagnostics)}");
         }
 
         // Combinar tractaments
         var tractaments = seccions
-            .Where(s => !string.IsNullOrWhiteSpace(s.Tractament))
-            .Select(s => s.Tractament)
+            .Where(s => s != null && !string.IsNullOrWhiteSpace(s?.Tractament))
+            .Select(s => s?.Tractament)
             .ToList();
         
-        if (tractaments.Any())
+        if (tractaments.Count != 0)
         {
             resumParts.Add($"Tractament: {string.Join("; ", tractaments)}");
         }
 
         // Si hi ha observacions generals
         var observacions = seccions
-            .Where(s => !string.IsNullOrWhiteSpace(s.Observacions))
-            .Select(s => s.Observacions)
+            .Where(s => s != null && !string.IsNullOrWhiteSpace(s?.Observacions))
+            .Select(s => s?.Observacions)
             .ToList();
         
-        if (observacions.Any() && !resumParts.Any())
+        if (observacions.Count != 0 && resumParts.Count == 0)
         {
             // Si només hi ha observacions, retornar-les sense etiqueta
             return string.Join("; ", observacions);
         }
-        else if (observacions.Any())
+        else if (observacions.Count != 0)
         {
             resumParts.Add($"Observacions: {string.Join("; ", observacions)}");
         }
 
-        return resumParts.Any() 
-            ? string.Join(" | ", resumParts) 
+        return resumParts.Count != 0
+            ? string.Join(" | ", resumParts)
             : "Sense informació";
     }
 
-    private bool ConteParaulaClau(string text, string[] paraulesClau)
+    private static bool ConteParaulaClau(string text, string[] paraulesClau)
     {
-        foreach (var paraula in paraulesClau)
-        {
-            if (text.Contains(paraula))
-            {
-                return true;
-            }
-        }
-        return false;
+        return paraulesClau.Any(paraula => text.Contains(paraula));
     }
 
-    private string ExtreureDespresParaulaClau(string text, string[] paraulesClau)
+    private static string ExtreureDespresParaulaClau(string text, string[] paraulesClau)
     {
         foreach (var paraula in paraulesClau)
         {
@@ -212,7 +204,7 @@ public class TextVisitaParserService
         return text;
     }
 
-    private void AssignarSeccio(SeccioTextVisitaDto seccions, string nomSeccio, List<string> contingut)
+    private static void AssignarSeccio(SeccioTextVisitaDto seccions, string nomSeccio, List<string> contingut)
     {
         if (contingut.Count == 0) return;
 
@@ -239,7 +231,7 @@ public class TextVisitaParserService
         }
     }
 
-    private string CombinarTexts(string? textExistent, string textNou)
+    private static string CombinarTexts(string? textExistent, string textNou)
     {
         if (string.IsNullOrWhiteSpace(textExistent))
         {

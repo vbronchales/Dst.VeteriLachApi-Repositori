@@ -1,6 +1,6 @@
 using System.Xml;
 using Microsoft.Extensions.Caching.Memory;
-using VeteriLach.ReadApi.Application.Medicines.DTOs;
+using VeteriLach.ReadApi.Domain.Medicines;
 
 namespace VeteriLach.ReadApi.Infrastructure.ExternalServices.LocalDataFallback;
 

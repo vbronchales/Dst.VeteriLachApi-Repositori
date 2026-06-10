@@ -1,4 +1,4 @@
-using VeteriLach.ReadApi.Application.Medicines.DTOs;
+using VeteriLach.ReadApi.Domain.Medicines;
 
 namespace VeteriLach.ReadApi.Infrastructure.ExternalServices.Interfaces;
 
@@ -14,10 +14,7 @@ public interface ICimaVetService
     /// <param name="species">Espècie animal (opcional)</param>
     /// <param name="cancellationToken">Token de cancel·lació</param>
     /// <returns>Llista de medicaments trobats</returns>
-    Task<List<VeterinaryMedicineDto>> SearchMedicinesAsync(
-        string query, 
-        string? species = null, 
-        CancellationToken cancellationToken = default);
+    public Task<List<VeterinaryMedicineDto>> SearchMedicinesAsync(string query, string? species = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Obté informació detallada d'un medicament veterinari per codi nacional
@@ -25,9 +22,7 @@ public interface ICimaVetService
     /// <param name="cnCode">Codi Nacional</param>
     /// <param name="cancellationToken">Token de cancel·lació</param>
     /// <returns>Informació del medicament o null si no es troba</returns>
-    Task<VeterinaryMedicineDto?> GetMedicineByCodeAsync(
-        string cnCode, 
-        CancellationToken cancellationToken = default);
+    public Task<VeterinaryMedicineDto?> GetMedicineByCodeAsync(string cnCode, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Cerca medicaments per principi actiu
@@ -35,7 +30,5 @@ public interface ICimaVetService
     /// <param name="activeIngredient">Principi actiu</param>
     /// <param name="cancellationToken">Token de cancel·lació</param>
     /// <returns>Llista de medicaments amb aquest principi actiu</returns>
-    Task<List<VeterinaryMedicineDto>> SearchByActiveIngredientAsync(
-        string activeIngredient, 
-        CancellationToken cancellationToken = default);
+    public Task<List<VeterinaryMedicineDto>> SearchByActiveIngredientAsync(string activeIngredient, CancellationToken cancellationToken = default);
 }
